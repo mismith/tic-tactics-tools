@@ -76,7 +76,6 @@ body {
 		color: white;
 		
 		&.previous {
-			box-shadow: 0 0 0 10px color(var(--blue) alpha(50%));
 			animation: previous-blue 750ms linear infinite;
 		}
 	}
@@ -85,7 +84,6 @@ body {
 		color: white;
 
 		&.previous {
-			box-shadow: 0 0 0 10px color(var(--red) alpha(50%));
 			animation: previous-red 750ms linear infinite;
 		}
 	}

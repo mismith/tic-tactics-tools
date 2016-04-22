@@ -92,7 +92,6 @@ body {
 	color: white;
 }
 .tile.blue.previous {
-	box-shadow: 0 0 0 10px rgba(0, 194, 215, 0.5);
 	-webkit-animation: previous-blue 750ms linear infinite;
 	        animation: previous-blue 750ms linear infinite;
 }
@@ -101,7 +100,6 @@ body {
 	color: white;
 }
 .tile.red.previous {
-	box-shadow: 0 0 0 10px rgba(254, 57, 46, 0.5);
 	-webkit-animation: previous-red 750ms linear infinite;
 	        animation: previous-red 750ms linear infinite;
 }

@@ -1,136 +1,8 @@
-
 let TicTacticsTools = React.createClass({
 	getInitialState() {
 		return {
 			me: null,
-			megaboards: [
-				{
-					boards: {
-						A: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						B: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						C: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						D: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						E: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						F: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						G: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						H: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-						I: {
-							tiles: {
-								a: false,
-								b: false,
-								c: false,
-								d: false,
-								e: false,
-								f: false,
-								g: false,
-								h: false,
-								i: false,
-							},
-						},
-					},
-					canChooseAnyTile: true,
-					previous: 'Ee',
-					turn: 'blue',
-					blue: 'x',
-					red: 'o',
-				},
-			],
+			game: {},
 		};
 	},
 
@@ -159,77 +31,9 @@ let TicTacticsTools = React.createClass({
 		this.firebase.unauth();
 	},
 
-	handleClick(i, j, player, previous, e) {
-		if (e.shiftKey) {
-			let newPlayer = player;
-			if (!player) newPlayer = 'blue';
-			else if (player === 'blue') newPlayer = 'red';
-			else if (player === 'red') newPlayer = false;
-
-			this.setState(React.addons.update(this.state, {
-				megaboards: {
-					0: {
-						boards: {
-							[i]: {
-								tiles: {
-									[j]: {$set: newPlayer},
-								},
-							},
-						},
-					},
-				},
-			}));
-		} else {
-			// @TODO: check if allowed
-
-			let newPlayer = this.state.megaboards[0].turn,
-				nextTurn = newPlayer === 'blue' ? 'red' : 'blue';
-
-			let canChooseAnyTile = false;
-			if (previous) {
-				let J = j.toUpperCase(),
-					tilesLeftInDestinationBoard = _.filter(this.state.megaboards[0].boards[J].tiles, tile => !tile).length;
-
-				if (
-					!tilesLeftInDestinationBoard || // board is already full
-					J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
-				) {
-					canChooseAnyTile = true;
-				}
-			}
-
-
-			this.setState(React.addons.update(this.state, {
-				megaboards: {
-					0: {
-						boards: {
-							[i]: {
-								tiles: {
-									[j]: {$set: newPlayer},
-								},
-							},
-						},
-						canChooseAnyTile: {$set: canChooseAnyTile},
-						previous: {$set: i + j},
-						turn: {$set: nextTurn},
-					},
-				},
-			}));
-		}
-	},
-
 	render() {
 		return <div className="flex-row">
-		{this.state.megaboards.map(megaboard =>
-			<div>
-				<header className="flex-row flex-justify-center">
-					<div className="turn-indicator">
-						<Tile player={megaboard.turn} letter={megaboard.turn === 'blue' ? megaboard.blue : megaboard.red} />
-					</div>
-				</header>
-				<MegaBoard {...megaboard} onClick={this.handleClick} />
-			</div>
-		)}
+			<Game {...this.state.game} />
 			<aside>
 				<button hidden={this.state.me} onClick={this.login}>Login with Facebook</button>
 				<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
@@ -239,125 +43,125 @@ let TicTacticsTools = React.createClass({
 });
 
 
-let MegaBoard = React.createClass({
-	getDefaultProps() {
+let Game = React.createClass({
+	getInitialState() {
 		return {
 			boards: {
 				A: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				B: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				C: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				D: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				E: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				F: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				G: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				H: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 				I: {
 					tiles: {
-						a: false,
-						b: false,
-						c: false,
-						d: false,
-						e: false,
-						f: false,
-						g: false,
-						h: false,
-						i: false,
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
 					},
 				},
 			},
@@ -366,7 +170,196 @@ let MegaBoard = React.createClass({
 			turn: 'blue',
 			blue: 'x',
 			red: 'o',
-			onClick: () => {},
+		};
+	},
+
+	handleClick(i, j, player, previous, e) {
+		// @TODO: check/confirm if allowed
+		if (e.shiftKey) {
+			// toggle tile
+
+			let newPlayer = player;
+			if (!player) newPlayer = 'blue';
+			else if (player === 'blue') newPlayer = 'red';
+			else if (player === 'red') newPlayer = false;
+
+			this.setState(React.addons.update(this.state, {
+				boards: {
+					[i]: {
+						tiles: {
+							[j]: {$set: newPlayer},
+						},
+					},
+				},
+			}));
+		} else {
+			// make a turn
+
+			let newPlayer = this.state.turn,
+				nextTurn = newPlayer === 'blue' ? 'red' : 'blue';
+
+			let canChooseAnyTile = false;
+			if (previous) {
+				let J = j.toUpperCase(),
+					tilesLeftInDestinationBoard = _.filter(this.state.boards[J].tiles, tile => !tile).length;
+
+				if (
+					!tilesLeftInDestinationBoard || // board is already full
+					J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
+				) {
+					canChooseAnyTile = true;
+				}
+			}
+
+			this.setState(React.addons.update(this.state, {
+				boards: {
+					[i]: {
+						tiles: {
+							[j]: {$set: newPlayer},
+						},
+					},
+				},
+				canChooseAnyTile: {$set: canChooseAnyTile},
+				previous: {$set: i + j},
+				turn: {$set: nextTurn},
+			}));
+		}
+	},
+
+	render() {
+		return <div className="game">
+			<header className="flex-row flex-justify-center">
+				<div className="turn-indicator">
+					<Tile player={this.state.turn} letter={this.state.turn === 'blue' ? this.state.blue : this.state.red} />
+				</div>
+			</header>
+			<MegaBoard {...this.state} onClick={this.handleClick} />
+		</div>
+	},
+});
+
+let MegaBoard = React.createClass({
+	getDefaultProps() {
+		return {
+			boards: {
+				A: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				B: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				C: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				D: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				E: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				F: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				G: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				H: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+				I: {
+					tiles: {
+						a: null,
+						b: null,
+						c: null,
+						d: null,
+						e: null,
+						f: null,
+						g: null,
+						h: null,
+						i: null,
+					},
+				},
+			},
 		};
 	},
 
@@ -384,19 +377,18 @@ let Board = React.createClass({
 	getDefaultProps() {
 		return {
 			tiles: {
-				a: false,
-				b: false,
-				c: false,
-				d: false,
-				e: false,
-				f: false,
-				g: false,
-				h: false,
-				i: false,
+				a: null,
+				b: null,
+				c: null,
+				d: null,
+				e: null,
+				f: null,
+				g: null,
+				h: null,
+				i: null,
 			},
+			i: 'A',
 			canChooseAnyTile: false,
-			previous: 'Ee',
-			turn: 'blue',
 			blue: 'x',
 			red: 'o',
 			onClick: () => {},
@@ -432,7 +424,7 @@ let Board = React.createClass({
 
 		if (
 			this.props.canChooseAnyTile || 
-			this.props.previous && this.props.previous[1].toUpperCase() === this.props.i
+			(this.props.previous && this.props.previous[1].toUpperCase() === this.props.i)
 		) {
 			className += ' active';
 		}
@@ -441,7 +433,7 @@ let Board = React.createClass({
 	},
 
 	render() {
-		let {i, tiles, red, blue, previous, canChooseAnyTile, onClick, ...props} = this.props,
+		let {i, tiles, canChooseAnyTile, previous, blue, red, onClick, ...props} = this.props,
 			zIndex = 0;
 
 		return <div className={`board ${this.getClassName()}`}>
@@ -465,6 +457,13 @@ let Board = React.createClass({
 });
 
 let Tile = React.createClass({
+	getDefaultProps() {
+		return {
+			player: 'blue',
+			letter: 'x',
+		};
+	},
+
 	render() {
 		let {player, letter, isPrevious, isBlocked, ...props} = this.props;
 
