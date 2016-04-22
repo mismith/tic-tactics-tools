@@ -411,14 +411,13 @@ var Board = React.createClass({
 		var _props2 = this.props;
 		var tiles = _props2.tiles;
 		var onClick = _props2.onClick;
-
 		var props = _objectWithoutProperties(_props2, ['tiles', 'onClick']);
-
+		var n = 0;
 		return React.createElement(
 			'div',
 			{ className: 'board ' + this.getClassName() },
 			_.map(tiles, function (tile, j) {
-				return React.createElement(Tile, _extends({ key: j, j: j, owner: tile, onClick: onClick.bind(_this2, props.i, j) }, props));
+				return React.createElement(Tile, _extends({ key: j, j: j, owner: tile, onClick: onClick.bind(_this2, props.i, j), style: { zIndex: 3 - n++ % 3 } }, props));
 			})
 		);
 	}
@@ -435,10 +434,17 @@ var Tile = React.createClass({
 		return className;
 	},
 	render: function render() {
+		var _props3 = this.props;
+		var owner = _props3.owner;
+		var letter = _props3.letter;
+		var onClick = _props3.onClick;
+
+		var props = _objectWithoutProperties(_props3, ['owner', 'letter', 'onClick']);
+
 		return React.createElement(
 			'button',
-			{ className: 'tile ' + this.getClassName(), onClick: this.props.onClick.bind(this, this.props.owner) },
-			this.props.owner && React.createElement('img', { src: (this.props.owner === 'blue' && this.props.letter === 'x' || this.props.owner === 'red' && this.props.letter === 'o' ? 'x' : 'o') + '.svg' })
+			_extends({ className: 'tile ' + this.getClassName(), onClick: onClick.bind(this, owner) }, props),
+			owner && React.createElement('img', { src: (owner === 'blue' && letter === 'x' || owner === 'red' && letter === 'o' ? 'x' : 'o') + '.svg' })
 		);
 	}
 });
