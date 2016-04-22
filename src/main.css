@@ -12,7 +12,8 @@
 	--purple: #8b4fda;
 	--green: #61bb1c;
 
-	--size: 5px;
+	--perspective: 16px;
+	--spacing: 4px;
 }
 * {
 	box-sizing: border-box;
@@ -43,28 +44,26 @@ body {
 }
 
 @keyframes previous-blue {
-	0% {   border-color: color(var(--blue) alpha(0%)); }
-	90% {  border-color: color(var(--blue) alpha(66.666%)); }
-	100% { border-color: color(var(--blue) alpha(0%)); }
+	0% {   box-shadow: 0 0 0 0px color(var(--blue) alpha(50%)); }
+	100% { box-shadow: 0 0 0 10px color(var(--blue) alpha(50%)); }
 }
 @keyframes previous-red {
-	0% {   border-color: color(var(--red) alpha(0%)); }
-	90% {  border-color: color(var(--red) alpha(66.666%)); }
-	100% { border-color: color(var(--red) alpha(0%)); }
+	0% {   box-shadow: 0 0 0 0px color(var(--red) alpha(50%)); }
+	100% { box-shadow: 0 0 0 10px color(var(--red) alpha(50%)); }
 }
 .megaboard {
 	display: flex;
 	flex-wrap: wrap;
 	width: 900px;
 	height: 900px;
-	padding: 5px;
+	padding: var(--spacing);
 
 	& .board {
 		display: flex;
 		flex-wrap: wrap;
-		width: calc(33.333% - 10px);
-		height: calc(33.333% - 10px);
-		margin: 5px;
+		width: calc(33.333% - 2 * var(--spacing));
+		height: calc(33.333% - 2 * var(--spacing));
+		margin: var(--spacing);
 
 		&:nth-child(2n) {
 			& .tile {
@@ -76,14 +75,14 @@ body {
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			width: calc(33.333% - 10px);
-			height: calc(33.333% - 10px);
+			width: calc(33.333% - 2 * var(--spacing));
+			height: calc(33.333% - 2 * var(--spacing));
 			background-color: var(--light);
 			background-clip: padding-box;
 			font: inherit;
 			padding: 0;
 			border: 0;
-			margin: 5px;
+			margin: var(--spacing);
 			outline: none;
 			user-select: none;
 
@@ -96,8 +95,8 @@ body {
 				color: white;
 				
 				&.previous {
-					border-color: color(var(--blue) alpha(50%));
-					animation: previous-blue 1s linear infinite;
+					box-shadow: 0 0 0 10px color(var(--blue) alpha(50%));
+					animation: previous-blue 750ms linear infinite;
 				}
 			}
 			&.red {
@@ -105,37 +104,36 @@ body {
 				color: white;
 
 				&.previous {
-					border-color: color(var(--red) alpha(50%));
-					animation: previous-red 1s linear infinite;
+					box-shadow: 0 0 0 10px color(var(--red) alpha(50%));
+					animation: previous-red 750ms linear infinite;
 				}
 			}
 		}
 		&.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
-			transform: translate3d(var(--size), -var(--size), 0);
+			transform: translate(var(--perspective), -var(--perspective));
 			cursor: pointer;
 
 			&:before,
 			&:after {
 				content: "";
 				position: absolute;
-				background-color: var(--darker);
 				pointer-events: none;
 			}
 			&:before {
-				left: -var(--size);
+				left: -var(--perspective);
 				top: 0;
-				bottom: -var(--size);
+				bottom: -var(--perspective);
 				width: 0;
-				border-top: solid var(--size) var(--bg);
-				border-right: solid var(--size) transparent;
+				border-top: solid var(--perspective) transparent;
+				border-right: solid var(--perspective) var(--darker);
 			}
 			&:after {
-				left: -var(--size);
-				bottom: -var(--size);
+				left: -var(--perspective);
+				bottom: -var(--perspective);
 				right: 0;
 				height: 0;
-				border-right: solid var(--size) var(--bg);
-				border-top: solid var(--size) transparent;
+				border-right: solid var(--perspective) transparent;
+				border-top: solid var(--perspective) var(--darker);
 			}
 		}
 		&.blue {

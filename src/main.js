@@ -399,10 +399,11 @@ let Board = React.createClass({
 	},
 
 	render() {
-		let {tiles, onClick, ...props} = this.props;
+		let {tiles, onClick, ...props} = this.props,
+			n = 0;
 		return <div className={`board ${this.getClassName()}`}>
 		{_.map(tiles, (tile, j) =>
-			<Tile key={j} j={j} owner={tile} onClick={onClick.bind(this, props.i, j)} {...props} />
+			<Tile key={j} j={j} owner={tile} onClick={onClick.bind(this, props.i, j)} style={{zIndex: 3-n++%3}} {...props} />
 		)}
 		</div>
 	},
@@ -419,9 +420,10 @@ let Tile = React.createClass({
 	},
 
 	render() {
-		return <button className={`tile ${this.getClassName()}`} onClick={this.props.onClick.bind(this, this.props.owner)}>
-		{this.props.owner &&
-			<img src={(this.props.owner === 'blue' && this.props.letter === 'x' || this.props.owner === 'red' && this.props.letter === 'o' ? 'x' : 'o') + '.svg'} />
+		let {owner, letter, onClick, ...props} = this.props;
+		return <button className={`tile ${this.getClassName()}`} onClick={onClick.bind(this, owner)} {...props}>
+		{owner &&
+			<img src={(owner === 'blue' && letter === 'x' || owner === 'red' && letter === 'o' ? 'x' : 'o') + '.svg'} />
 		}
 		</button>
 	},
