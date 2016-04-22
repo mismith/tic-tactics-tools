@@ -1,0 +1,177 @@
+* {
+	box-sizing: border-box;
+}
+html,
+body {
+	width: 100%;
+	height: 100%;
+	background-color: #e8e8e8;
+}
+body {
+	padding: 0;
+	margin: 0;
+}
+
+
+.flex-row {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+}
+
+#app {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+
+@-webkit-keyframes previous-blue {
+	0% {   border-color: rgba(0, 194, 215, 0); }
+	90% {  border-color: rgba(0, 194, 215, 0.66); }
+	100% { border-color: rgba(0, 194, 215, 0); }
+}
+
+@keyframes previous-blue {
+	0% {   border-color: rgba(0, 194, 215, 0); }
+	90% {  border-color: rgba(0, 194, 215, 0.66); }
+	100% { border-color: rgba(0, 194, 215, 0); }
+}
+@-webkit-keyframes previous-red {
+	0% {   border-color: rgba(254, 57, 46, 0); }
+	90% {  border-color: rgba(254, 57, 46, 0.66); }
+	100% { border-color: rgba(254, 57, 46, 0); }
+}
+@keyframes previous-red {
+	0% {   border-color: rgba(254, 57, 46, 0); }
+	90% {  border-color: rgba(254, 57, 46, 0.66); }
+	100% { border-color: rgba(254, 57, 46, 0); }
+}
+.megaboard {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	    -ms-flex-wrap: wrap;
+	        flex-wrap: wrap;
+	width: 900px;
+	height: 900px;
+	padding: 5px
+}
+.megaboard .board {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	    -ms-flex-wrap: wrap;
+	        flex-wrap: wrap;
+	width: calc(33.333% - 10px);
+	height: calc(33.333% - 10px);
+	margin: 5px;
+}
+.megaboard .board:nth-child(2n) {}
+.megaboard .board:nth-child(2n) .tile {
+	background-color: #a7a7a7;
+}
+.megaboard .board .tile {
+	-webkit-appearance: none;
+	   -moz-appearance: none;
+	        appearance: none;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	    -ms-flex-pack: center;
+	        justify-content: center;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	    -ms-flex-align: center;
+	        align-items: center;
+	width: calc(33.333% - 10px);
+	height: calc(33.333% - 10px);
+	background-color: #cecece;
+	background-clip: padding-box;
+	font: inherit;
+	padding: 0;
+	border: 0;
+	margin: 5px;
+	outline: none;
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	    -ms-user-select: none;
+	        user-select: none;
+}
+.megaboard .board .tile.blocked:not(.blue):not(.red) {
+	background-image: -webkit-repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
+	background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
+	pointer-events: none;
+}
+.megaboard .board .tile.blue {
+	background-color: #00c2d7;
+	color: white;
+}
+.megaboard .board .tile.blue.previous {
+	border-color: rgba(0, 194, 215, 0.5);
+	-webkit-animation: previous-blue 1s linear infinite;
+	        animation: previous-blue 1s linear infinite;
+}
+.megaboard .board .tile.red {
+	background-color: #fe392e;
+	color: white;
+}
+.megaboard .board .tile.red.previous {
+	border-color: rgba(254, 57, 46, 0.5);
+	-webkit-animation: previous-red 1s linear infinite;
+	        animation: previous-red 1s linear infinite;
+}
+.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
+	-webkit-transform: translate3d(5px, -5px, 0);
+	        transform: translate3d(5px, -5px, 0);
+	cursor: pointer;
+}
+.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before,
+			.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+	content: "";
+	position: absolute;
+	background-color: #717170;
+	pointer-events: none;
+}
+.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before {
+	left: -5px;
+	top: 0;
+	bottom: -5px;
+	width: 0;
+	border-top: solid 5px #e8e8e8;
+	border-right: solid 5px transparent;
+}
+.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+	left: -5px;
+	bottom: -5px;
+	right: 0;
+	height: 0;
+	border-right: solid 5px #e8e8e8;
+	border-top: solid 5px transparent;
+}
+.megaboard .board.blue {}
+.megaboard .board.blue .tile {}
+.megaboard .board.blue .tile:not(.blue):not(.red) {
+	background-color: #77dee9;
+}
+.megaboard .board.blue .tile.red {
+	background-color: #00c2d7;
+}
+.megaboard .board.red {}
+.megaboard .board.red .tile {}
+.megaboard .board.red .tile:not(.blue):not(.red) {
+	background-color: #ffaba9;
+}
+.megaboard .board.red .tile.blue {
+	background-color: #fe392e;
+}
