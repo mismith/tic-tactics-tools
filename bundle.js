@@ -131,7 +131,8 @@ var TicTacticsTools = React.createClass({
 					}
 				},
 				previous: false,
-				turn: 'blue'
+				turn: 'blue',
+				letter: 'x'
 			}]
 		};
 	},
@@ -174,13 +175,39 @@ var TicTacticsTools = React.createClass({
 			'div',
 			{ className: 'flex-row' },
 			this.state.megaboards.map(function (megaboard) {
-				return React.createElement(MegaBoard, _extends({}, megaboard, { onClick: _this.handleClick }));
+				return React.createElement(
+					'div',
+					null,
+					React.createElement(
+						'header',
+						{ className: 'flex-row flex-justify-center' },
+						React.createElement(TurnIndicator, { turn: megaboard.turn, letter: megaboard.letter })
+					),
+					React.createElement(MegaBoard, _extends({}, megaboard, { onClick: _this.handleClick }))
+				);
 			}),
 			React.createElement(
 				'aside',
 				null,
 				'Sidebar'
 			)
+		);
+	}
+});
+
+var TurnIndicator = React.createClass({
+	displayName: 'TurnIndicator',
+	getDefaultProps: function getDefaultProps() {
+		return {
+			turn: 'blue',
+			letter: 'x'
+		};
+	},
+	render: function render() {
+		return React.createElement(
+			'div',
+			{ className: 'turn-indicator ' + this.props.turn },
+			React.createElement('img', { src: (this.props.turn === 'blue' && this.props.letter === 'x' || this.props.turn === 'red' && this.props.letter === 'o' ? 'x' : 'o') + '.svg' })
 		);
 	}
 });
@@ -308,9 +335,9 @@ var MegaBoard = React.createClass({
 					}
 				}
 			},
-			turn: 'blue',
 			previous: false,
-			letter: 'o',
+			turn: 'blue',
+			letter: 'x',
 			onClick: function onClick() {}
 		};
 	},
@@ -361,10 +388,20 @@ var Board = React.createClass({
 		// diag
 		tiles.a === tiles.e && tiles.e === tiles.i && (className = tiles.i) || tiles.c === tiles.e && tiles.e === tiles.g && (className = tiles.g)) {
 			// this board has been won
-		}
+		} else if (!_.some(tiles, function (tile) {
+				return !tile;
+			})) {
+				// it's a tie --> make this a wildcard
+				className += ' purple';
+			}
 
-		if (this.props.previous && this.props.previous[1].toUpperCase() === this.props.i) {
-			className += ' ' + 'active';
+		if (this.props.previous) {
+			var i = this.props.previous[1].toUpperCase();
+			if (i === this.props.i) {
+				className += ' active';
+			}
+		} else {
+			className += ' active';
 		}
 		return className;
 	},
