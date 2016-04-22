@@ -52,35 +52,7 @@ body {
 	0% {   box-shadow: 0 0 0 0px rgba(254, 57, 46, 0.5); }
 	100% { box-shadow: 0 0 0 10px rgba(254, 57, 46, 0.5); }
 }
-.megaboard {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
-	display: flex;
-	-webkit-flex-wrap: wrap;
-	    -ms-flex-wrap: wrap;
-	        flex-wrap: wrap;
-	width: 900px;
-	height: 900px;
-	padding: 4px
-}
-.megaboard .board {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
-	display: flex;
-	-webkit-flex-wrap: wrap;
-	    -ms-flex-wrap: wrap;
-	        flex-wrap: wrap;
-	width: calc(33.333% - 2 * 4px);
-	height: calc(33.333% - 2 * 4px);
-	margin: 4px;
-}
-.megaboard .board:nth-child(2n) {}
-.megaboard .board:nth-child(2n) .tile {
-	background-color: #a7a7a7;
-}
-.megaboard .board .tile {
+.tile {
 	-webkit-appearance: none;
 	   -moz-appearance: none;
 	        appearance: none;
@@ -108,43 +80,59 @@ body {
 	-webkit-user-select: none;
 	   -moz-user-select: none;
 	    -ms-user-select: none;
-	        user-select: none;
+	        user-select: none
 }
-.megaboard .board .tile.blocked:not(.blue):not(.red) {
+.tile.blocked:not(.blue):not(.red) {
 	background-image: -webkit-repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
 	background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
 	pointer-events: none;
 }
-.megaboard .board .tile.blue {
-	background-color: #00c2d7;
+.tile.blue {
+	background-color: #00c2d7 !important;
 	color: white;
 }
-.megaboard .board .tile.blue.previous {
+.tile.blue.previous {
 	box-shadow: 0 0 0 10px rgba(0, 194, 215, 0.5);
 	-webkit-animation: previous-blue 750ms linear infinite;
 	        animation: previous-blue 750ms linear infinite;
 }
-.megaboard .board .tile.red {
-	background-color: #fe392e;
+.tile.red {
+	background-color: #fe392e !important;
 	color: white;
 }
-.megaboard .board .tile.red.previous {
+.tile.red.previous {
 	box-shadow: 0 0 0 10px rgba(254, 57, 46, 0.5);
 	-webkit-animation: previous-red 750ms linear infinite;
 	        animation: previous-red 750ms linear infinite;
 }
-.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
+.board {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	    -ms-flex-wrap: wrap;
+	        flex-wrap: wrap;
+	width: calc(33.333% - 2 * 4px);
+	height: calc(33.333% - 2 * 4px);
+	margin: 4px
+}
+.board:nth-child(2n) {}
+.board:nth-child(2n) .tile {
+	background-color: #a7a7a7;
+}
+.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
 	-webkit-transform: translate(16px, -16px);
 	        transform: translate(16px, -16px);
 	cursor: pointer;
 }
-.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before,
-			.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before,
+		.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
 	content: "";
 	position: absolute;
 	pointer-events: none;
 }
-.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before {
+.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before {
 	left: -16px;
 	top: 0;
 	bottom: -16px;
@@ -152,7 +140,7 @@ body {
 	border-top: solid 16px transparent;
 	border-right: solid 16px #717170;
 }
-.megaboard .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
 	left: -16px;
 	bottom: -16px;
 	right: 0;
@@ -160,26 +148,39 @@ body {
 	border-right: solid 16px transparent;
 	border-top: solid 16px #717170;
 }
-.megaboard .board.blue {}
-.megaboard .board.blue .tile {}
-.megaboard .board.blue .tile:not(.blue):not(.red) {
+.board.blue {}
+.board.blue .tile {}
+.board.blue .tile:not(.blue):not(.red) {
 	background-color: #77dee9;
 }
-.megaboard .board.blue .tile.red {
-	background-color: #00c2d7;
+.board.blue .tile.red {
+	background-color: #00c2d7 !important;
 }
-.megaboard .board.red {}
-.megaboard .board.red .tile {}
-.megaboard .board.red .tile:not(.blue):not(.red) {
+.board.red {}
+.board.red .tile {}
+.board.red .tile:not(.blue):not(.red) {
 	background-color: #ffaba9;
 }
-.megaboard .board.red .tile.blue {
-	background-color: #fe392e;
+.board.red .tile.blue {
+	background-color: #fe392e !important;
 }
-.megaboard .board.purple {}
-.megaboard .board.purple .tile {
-	background-color: #8b4fda;
+.board.purple {}
+.board.purple .tile {
+	background-color: #8b4fda !important;
 }
+.megaboard {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	    -ms-flex-wrap: wrap;
+	        flex-wrap: wrap;
+	width: 900px;
+	height: 900px;
+	padding: 4px;
+}
+
 .turn-indicator {
 	display: -webkit-box;
 	display: -webkit-flex;
@@ -196,13 +197,12 @@ body {
 	width: 100px;
 	height: 100px;
 	background-color: #717170;
-	color: white;
-	border-radius: 50%
+	border-radius: 50%;
+	overflow: hidden
+}
 
-}
-.turn-indicator.blue {
-	background-color: #00c2d7;
-}
-.turn-indicator.red {
-	background-color: #fe392e;
+.turn-indicator .tile {
+	width: 100%;
+	height: 100%;
+	margin: 0;
 }

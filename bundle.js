@@ -10,6 +10,7 @@ var TicTacticsTools = React.createClass({
 	displayName: 'TicTacticsTools',
 	getInitialState: function getInitialState() {
 		return {
+			me: null,
 			megaboards: [{
 				boards: {
 					A: {
@@ -130,37 +131,82 @@ var TicTacticsTools = React.createClass({
 						}
 					}
 				},
-				previous: false,
+				canChooseAnyTile: true,
+				previous: 'Ee',
 				turn: 'blue',
-				letter: 'x'
+				blue: 'x',
+				red: 'o'
 			}]
 		};
 	},
-	handleClick: function handleClick(i, j, owner, e) {
+	componentWillMount: function componentWillMount() {
+		var _this = this;
+
+		this.firebase = new Firebase('https://mismith.firebaseio.com/tic-tactics-tools');
+		this.firebase.onAuth(function (authData) {
+			if (authData) {
+				(function () {
+					var me = _this.firebase.child('users').child(authData.uid);
+					me.update(authData[authData.provider]);
+
+					_this.firebase.root().child('.info/connected').on('value', function (snap) {
+						if (snap.val()) {
+							me.child('online').onDisconnect().set(new Date().toISOString());
+							me.child('online').set(true);
+						}
+					});
+				})();
+			}
+			_this.setState({ me: authData });
+		});
+	},
+	login: function login() {
+		this.firebase.authWithOAuthPopup('facebook');
+	},
+	logout: function logout() {
+		this.firebase.unauth();
+	},
+	handleClick: function handleClick(i, j, player, previous, e) {
 		if (e.shiftKey) {
-			var newOwner = owner;
-			if (!owner) newOwner = 'blue';else if (owner === 'blue') newOwner = 'red';else if (owner === 'red') newOwner = false;
+			var newPlayer = player;
+			if (!player) newPlayer = 'blue';else if (player === 'blue') newPlayer = 'red';else if (player === 'red') newPlayer = false;
 
 			this.setState(React.addons.update(this.state, {
 				megaboards: {
 					0: {
 						boards: _defineProperty({}, i, {
-							tiles: _defineProperty({}, j, { $set: newOwner })
+							tiles: _defineProperty({}, j, { $set: newPlayer })
 						})
 					}
 				}
 			}));
 		} else {
 			// @TODO: check if allowed
-			var _newOwner = this.state.megaboards[0].turn,
-			    nextTurn = _newOwner === 'blue' ? 'red' : 'blue';
+
+			var _newPlayer = this.state.megaboards[0].turn,
+			    nextTurn = _newPlayer === 'blue' ? 'red' : 'blue';
+
+			var canChooseAnyTile = false;
+			if (previous) {
+				var J = j.toUpperCase(),
+				    tilesLeftInDestinationBoard = _.filter(this.state.megaboards[0].boards[J].tiles, function (tile) {
+					return !tile;
+				}).length;
+
+				if (!tilesLeftInDestinationBoard || // board is already full
+				J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
+				) {
+						canChooseAnyTile = true;
+					}
+			}
 
 			this.setState(React.addons.update(this.state, {
 				megaboards: {
 					0: {
 						boards: _defineProperty({}, i, {
-							tiles: _defineProperty({}, j, { $set: _newOwner })
+							tiles: _defineProperty({}, j, { $set: _newPlayer })
 						}),
+						canChooseAnyTile: { $set: canChooseAnyTile },
 						previous: { $set: i + j },
 						turn: { $set: nextTurn }
 					}
@@ -169,7 +215,7 @@ var TicTacticsTools = React.createClass({
 		}
 	},
 	render: function render() {
-		var _this = this;
+		var _this2 = this;
 
 		return React.createElement(
 			'div',
@@ -181,33 +227,29 @@ var TicTacticsTools = React.createClass({
 					React.createElement(
 						'header',
 						{ className: 'flex-row flex-justify-center' },
-						React.createElement(TurnIndicator, { turn: megaboard.turn, letter: megaboard.letter })
+						React.createElement(
+							'div',
+							{ className: 'turn-indicator' },
+							React.createElement(Tile, { player: megaboard.turn, letter: megaboard.turn === 'blue' ? megaboard.blue : megaboard.red })
+						)
 					),
-					React.createElement(MegaBoard, _extends({}, megaboard, { onClick: _this.handleClick }))
+					React.createElement(MegaBoard, _extends({}, megaboard, { onClick: _this2.handleClick }))
 				);
 			}),
 			React.createElement(
 				'aside',
 				null,
-				'Sidebar'
+				React.createElement(
+					'button',
+					{ hidden: this.state.me, onClick: this.login },
+					'Login with Facebook'
+				),
+				React.createElement(
+					'button',
+					{ hidden: !this.state.me, onClick: this.logout },
+					'Logout'
+				)
 			)
-		);
-	}
-});
-
-var TurnIndicator = React.createClass({
-	displayName: 'TurnIndicator',
-	getDefaultProps: function getDefaultProps() {
-		return {
-			turn: 'blue',
-			letter: 'x'
-		};
-	},
-	render: function render() {
-		return React.createElement(
-			'div',
-			{ className: 'turn-indicator ' + this.props.turn },
-			React.createElement('img', { src: (this.props.turn === 'blue' && this.props.letter === 'x' || this.props.turn === 'red' && this.props.letter === 'o' ? 'x' : 'o') + '.svg' })
 		);
 	}
 });
@@ -335,9 +377,11 @@ var MegaBoard = React.createClass({
 					}
 				}
 			},
-			previous: false,
+			canChooseAnyTile: true,
+			previous: 'Ee',
 			turn: 'blue',
-			letter: 'x',
+			blue: 'x',
+			red: 'o',
 			onClick: function onClick() {}
 		};
 	},
@@ -371,7 +415,13 @@ var Board = React.createClass({
 				g: false,
 				h: false,
 				i: false
-			}
+			},
+			canChooseAnyTile: false,
+			previous: 'Ee',
+			turn: 'blue',
+			blue: 'x',
+			red: 'o',
+			onClick: function onClick() {}
 		};
 	},
 	getClassName: function getClassName() {
@@ -388,36 +438,52 @@ var Board = React.createClass({
 		// diag
 		tiles.a === tiles.e && tiles.e === tiles.i && (className = tiles.i) || tiles.c === tiles.e && tiles.e === tiles.g && (className = tiles.g)) {
 			// this board has been won
+			// (player/winner sets className inline above)
 		} else if (!_.some(tiles, function (tile) {
 				return !tile;
 			})) {
+				// no active tiles left
 				// it's a tie --> make this a wildcard
 				className += ' purple';
 			}
 
-		if (this.props.previous) {
-			var i = this.props.previous[1].toUpperCase();
-			if (i === this.props.i) {
-				className += ' active';
-			}
-		} else {
+		if (this.props.canChooseAnyTile || this.props.previous && this.props.previous[1].toUpperCase() === this.props.i) {
 			className += ' active';
 		}
+
 		return className;
 	},
 	render: function render() {
-		var _this2 = this;
+		var _this3 = this;
 
 		var _props2 = this.props;
+		var i = _props2.i;
 		var tiles = _props2.tiles;
+		var red = _props2.red;
+		var blue = _props2.blue;
+		var previous = _props2.previous;
+		var canChooseAnyTile = _props2.canChooseAnyTile;
 		var onClick = _props2.onClick;
-		var props = _objectWithoutProperties(_props2, ['tiles', 'onClick']);
-		var n = 0;
+		var props = _objectWithoutProperties(_props2, ['i', 'tiles', 'red', 'blue', 'previous', 'canChooseAnyTile', 'onClick']);
+		var zIndex = 0;
+
 		return React.createElement(
 			'div',
 			{ className: 'board ' + this.getClassName() },
-			_.map(tiles, function (tile, j) {
-				return React.createElement(Tile, _extends({ key: j, j: j, owner: tile, onClick: onClick.bind(_this2, props.i, j), style: { zIndex: 3 - n++ % 3 } }, props));
+			_.map(tiles, function (player, j) {
+				return React.createElement(Tile, _extends({
+					key: j,
+					player: player,
+					letter: player === 'blue' ? blue : player === 'red' ? red : false,
+					isPrevious: i + j === previous,
+					isBlocked: j.toUpperCase() + i.toLowerCase() === previous && // can't send back
+					_.filter(tiles, function (tile) {
+						return !tile;
+					}).length > 1 // don't block if only one left
+					,
+					onClick: onClick.bind(_this3, i, j, player, previous),
+					style: { zIndex: 3 - zIndex++ % 3 }
+				}, props));
 			})
 		);
 	}
@@ -425,26 +491,19 @@ var Board = React.createClass({
 
 var Tile = React.createClass({
 	displayName: 'Tile',
-	getClassName: function getClassName() {
-		var className = this.props.owner;
-
-		if (this.props.previous) {
-			className += ' ' + (this.props.i + this.props.j === this.props.previous ? 'previous' : '') + ' ' + (this.props.j.toUpperCase() + this.props.i.toLowerCase() === this.props.previous ? 'blocked' : '');
-		}
-		return className;
-	},
 	render: function render() {
 		var _props3 = this.props;
-		var owner = _props3.owner;
+		var player = _props3.player;
 		var letter = _props3.letter;
-		var onClick = _props3.onClick;
+		var isPrevious = _props3.isPrevious;
+		var isBlocked = _props3.isBlocked;
 
-		var props = _objectWithoutProperties(_props3, ['owner', 'letter', 'onClick']);
+		var props = _objectWithoutProperties(_props3, ['player', 'letter', 'isPrevious', 'isBlocked']);
 
 		return React.createElement(
 			'button',
-			_extends({ className: 'tile ' + this.getClassName(), onClick: onClick.bind(this, owner) }, props),
-			owner && React.createElement('img', { src: (owner === 'blue' && letter === 'x' || owner === 'red' && letter === 'o' ? 'x' : 'o') + '.svg' })
+			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') }, props),
+			letter && React.createElement('img', { src: letter + '.svg' })
 		);
 	}
 });
