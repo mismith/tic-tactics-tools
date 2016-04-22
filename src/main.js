@@ -2,6 +2,7 @@
 let TicTacticsTools = React.createClass({
 	getInitialState() {
 		return {
+			me: null,
 			megaboards: [
 				{
 					boards: {
@@ -123,20 +124,47 @@ let TicTacticsTools = React.createClass({
 							},
 						},
 					},
-					previous: false,
+					canChooseAnyTile: true,
+					previous: 'Ee',
 					turn: 'blue',
-					letter: 'x',
+					blue: 'x',
+					red: 'o',
 				},
 			],
 		};
 	},
 
-	handleClick(i, j, owner, e) {
+	componentWillMount() {
+		this.firebase = new Firebase('https://mismith.firebaseio.com/tic-tactics-tools');
+		this.firebase.onAuth(authData => {
+			if (authData) {
+				let me = this.firebase.child('users').child(authData.uid);
+				me.update(authData[authData.provider]);
+
+				this.firebase.root().child('.info/connected').on('value', snap => {
+					if (snap.val()) {
+						me.child('online').onDisconnect().set(new Date().toISOString());
+						me.child('online').set(true);
+					}
+				});
+			}
+			this.setState({me: authData});
+		});
+	},
+
+	login() {
+		this.firebase.authWithOAuthPopup('facebook');
+	},
+	logout() {
+		this.firebase.unauth();
+	},
+
+	handleClick(i, j, player, previous, e) {
 		if (e.shiftKey) {
-			let newOwner = owner;
-			if (!owner) newOwner = 'blue';
-			else if (owner === 'blue') newOwner = 'red';
-			else if (owner === 'red') newOwner = false;
+			let newPlayer = player;
+			if (!player) newPlayer = 'blue';
+			else if (player === 'blue') newPlayer = 'red';
+			else if (player === 'red') newPlayer = false;
 
 			this.setState(React.addons.update(this.state, {
 				megaboards: {
@@ -144,7 +172,7 @@ let TicTacticsTools = React.createClass({
 						boards: {
 							[i]: {
 								tiles: {
-									[j]: {$set: newOwner},
+									[j]: {$set: newPlayer},
 								},
 							},
 						},
@@ -153,8 +181,23 @@ let TicTacticsTools = React.createClass({
 			}));
 		} else {
 			// @TODO: check if allowed
-			let newOwner = this.state.megaboards[0].turn,
-				nextTurn = newOwner === 'blue' ? 'red' : 'blue';
+
+			let newPlayer = this.state.megaboards[0].turn,
+				nextTurn = newPlayer === 'blue' ? 'red' : 'blue';
+
+			let canChooseAnyTile = false;
+			if (previous) {
+				let J = j.toUpperCase(),
+					tilesLeftInDestinationBoard = _.filter(this.state.megaboards[0].boards[J].tiles, tile => !tile).length;
+
+				if (
+					!tilesLeftInDestinationBoard || // board is already full
+					J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
+				) {
+					canChooseAnyTile = true;
+				}
+			}
+
 
 			this.setState(React.addons.update(this.state, {
 				megaboards: {
@@ -162,10 +205,11 @@ let TicTacticsTools = React.createClass({
 						boards: {
 							[i]: {
 								tiles: {
-									[j]: {$set: newOwner},
+									[j]: {$set: newPlayer},
 								},
 							},
 						},
+						canChooseAnyTile: {$set: canChooseAnyTile},
 						previous: {$set: i + j},
 						turn: {$set: nextTurn},
 					},
@@ -179,32 +223,21 @@ let TicTacticsTools = React.createClass({
 		{this.state.megaboards.map(megaboard =>
 			<div>
 				<header className="flex-row flex-justify-center">
-					<TurnIndicator turn={megaboard.turn} letter={megaboard.letter} />
+					<div className="turn-indicator">
+						<Tile player={megaboard.turn} letter={megaboard.turn === 'blue' ? megaboard.blue : megaboard.red} />
+					</div>
 				</header>
 				<MegaBoard {...megaboard} onClick={this.handleClick} />
 			</div>
 		)}
 			<aside>
-				Sidebar
+				<button hidden={this.state.me} onClick={this.login}>Login with Facebook</button>
+				<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 			</aside>
 		</div>
 	},
 });
 
-let TurnIndicator = React.createClass({
-	getDefaultProps() {
-		return {
-			turn: 'blue',
-			letter: 'x',
-		};
-	},
-
-	render() {
-		return <div className={`turn-indicator ${this.props.turn}`}>
-			<img src={(this.props.turn === 'blue' && this.props.letter === 'x' || this.props.turn === 'red' && this.props.letter === 'o' ? 'x' : 'o') + '.svg'} />
-		</div>
-	},
-});
 
 let MegaBoard = React.createClass({
 	getDefaultProps() {
@@ -328,9 +361,11 @@ let MegaBoard = React.createClass({
 					},
 				},
 			},
-			previous: false,
+			canChooseAnyTile: true,
+			previous: 'Ee',
 			turn: 'blue',
-			letter: 'x',
+			blue: 'x',
+			red: 'o',
 			onClick: () => {},
 		};
 	},
@@ -359,6 +394,12 @@ let Board = React.createClass({
 				h: false,
 				i: false,
 			},
+			canChooseAnyTile: false,
+			previous: 'Ee',
+			turn: 'blue',
+			blue: 'x',
+			red: 'o',
+			onClick: () => {},
 		};
 	},
 
@@ -382,48 +423,54 @@ let Board = React.createClass({
 			(tiles.c === tiles.e && tiles.e === tiles.g && (className = tiles.g))
 		) {
 			// this board has been won
-		} else if(!_.some(tiles, tile => !tile)) {
+			// (player/winner sets className inline above)
+		} else if (!_.some(tiles, tile => !tile)) {
+			// no active tiles left
 			// it's a tie --> make this a wildcard
 			className += ' purple';
 		}
 
-		if (this.props.previous) {
-			let i = this.props.previous[1].toUpperCase();
-			if (i === this.props.i) {
-				className += ' active';
-			}
-		} else {
+		if (
+			this.props.canChooseAnyTile || 
+			this.props.previous && this.props.previous[1].toUpperCase() === this.props.i
+		) {
 			className += ' active';
 		}
+
 		return className;
 	},
 
 	render() {
-		let {tiles, onClick, ...props} = this.props,
-			n = 0;
+		let {i, tiles, red, blue, previous, canChooseAnyTile, onClick, ...props} = this.props,
+			zIndex = 0;
+
 		return <div className={`board ${this.getClassName()}`}>
-		{_.map(tiles, (tile, j) =>
-			<Tile key={j} j={j} owner={tile} onClick={onClick.bind(this, props.i, j)} style={{zIndex: 3-n++%3}} {...props} />
+		{_.map(tiles, (player, j) =>
+			<Tile
+				key={j}
+				player={player}
+				letter={player === 'blue' ? blue : (player === 'red' ? red : false)}
+				isPrevious={i + j === previous}
+				isBlocked={
+					j.toUpperCase() + i.toLowerCase() === previous && // can't send back
+					_.filter(tiles, tile => !tile).length > 1 // don't block if only one left
+				}
+				onClick={onClick.bind(this, i, j, player, previous)}
+				style={{zIndex: 3-zIndex++%3}}
+				{...props}
+			/>
 		)}
 		</div>
 	},
 });
 
 let Tile = React.createClass({
-	getClassName() {
-		let className = this.props.owner;
-
-		if (this.props.previous) {
-			className += ' ' + (this.props.i + this.props.j === this.props.previous ? 'previous' : '') + ' ' + (this.props.j.toUpperCase() + this.props.i.toLowerCase() === this.props.previous ? 'blocked' : '');
-		}
-		return className;
-	},
-
 	render() {
-		let {owner, letter, onClick, ...props} = this.props;
-		return <button className={`tile ${this.getClassName()}`} onClick={onClick.bind(this, owner)} {...props}>
-		{owner &&
-			<img src={(owner === 'blue' && letter === 'x' || owner === 'red' && letter === 'o' ? 'x' : 'o') + '.svg'} />
+		let {player, letter, isPrevious, isBlocked, ...props} = this.props;
+
+		return <button className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''}`} {...props}>
+		{letter &&
+			<img src={`${letter}.svg`} />
 		}
 		</button>
 	},
