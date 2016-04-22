@@ -12,7 +12,7 @@
 	--purple: #8b4fda;
 	--green: #61bb1c;
 
-	--perspective: 16px;
+	--raise: 16px;
 	--spacing: 4px;
 }
 * {
@@ -36,6 +36,9 @@ body {
 .flex-justify-center {
 	justify-content: center;
 }
+.flex-align-center {
+	align-items: center;
+}
 
 #app {
 	display: flex;
@@ -56,14 +59,14 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: calc(33.333% - 2 * var(--spacing));
-	height: calc(33.333% - 2 * var(--spacing));
+	width: 100%;
+	height: 100%;
 	background-color: var(--light);
 	background-clip: padding-box;
 	font: inherit;
 	padding: 0;
 	border: 0;
-	margin: var(--spacing);
+	margin: 0;
 	outline: none;
 	user-select: none;
 
@@ -91,17 +94,21 @@ body {
 .board {
 	display: flex;
 	flex-wrap: wrap;
-	width: calc(33.333% - 2 * var(--spacing));
-	height: calc(33.333% - 2 * var(--spacing));
-	margin: var(--spacing);
+	width: 100%;
+	height: 100%;
 
+	& .tile {
+		width: calc(33.333% - 2 * var(--spacing));
+		height: calc(33.333% - 2 * var(--spacing));
+		margin: var(--spacing);
+	}
 	&:nth-child(2n) {
 		& .tile {
 			background-color: var(--dark);
 		}
 	}
 	&.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
-		transform: translate(var(--perspective), -var(--perspective));
+		transform: translate(var(--raise), -var(--raise));
 		cursor: pointer;
 
 		&:before,
@@ -111,20 +118,20 @@ body {
 			pointer-events: none;
 		}
 		&:before {
-			left: -var(--perspective);
+			left: -var(--raise);
 			top: 0;
-			bottom: -var(--perspective);
+			bottom: -var(--raise);
 			width: 0;
-			border-top: solid var(--perspective) transparent;
-			border-right: solid var(--perspective) var(--darker);
+			border-top: solid var(--raise) transparent;
+			border-right: solid var(--raise) var(--darker);
 		}
 		&:after {
-			left: -var(--perspective);
-			bottom: -var(--perspective);
+			left: -var(--raise);
+			bottom: -var(--raise);
 			right: 0;
 			height: 0;
-			border-right: solid var(--perspective) transparent;
-			border-top: solid var(--perspective) var(--darker);
+			border-right: solid var(--raise) transparent;
+			border-top: solid var(--raise) var(--darker);
 		}
 	}
 	&.blue {
@@ -156,24 +163,66 @@ body {
 .megaboard {
 	display: flex;
 	flex-wrap: wrap;
-	width: 900px;
-	height: 900px;
-	padding: var(--spacing);
+	width: 800px;
+	height: 800px;
+
+	& .board {
+		width: calc(33.333% - 2 * var(--spacing));
+		height: calc(33.333% - 2 * var(--spacing));
+		margin: var(--spacing);
+	}
+	&.mini {
+		width: 100px;
+		height: 100px;
+		margin: 0;
+
+		& .board {
+			width: 33.333%;
+			height: 33.333%;
+			margin: 0;
+
+			& .tile {
+				width: 33.333%;
+				height: 33.333%;
+				transform: none !important;
+				background-image: none !important;
+				animation: none !important;
+				pointer-events: auto !important;
+				cursor: inherit !important;
+				margin: 0;
+
+				& img,
+				&:before,
+				&:after {
+					display: none;
+				}
+			}
+		}
+	}
 }
 
 .turn-indicator {
 	display: flex;
-	justify-content: center;
-	align-items: center;
+	flex-shrink: 0;
 	width: 100px;
 	height: 100px;
 	background-color: var(--darker);
 	border-radius: 50%;
 	overflow: hidden;
+}
 
-	& .tile {
-		width: 100%;
-		height: 100%;
-		margin: 0;
+.gameview {
+	& > header {
+		margin: calc(2 * var(--spacing)) 0;
+
+		& input,
+		& output {
+			flex-basis: 50%;
+			flex-grow: 1;
+			font: inherit;
+			font-size: 1.5em;
+			text-align: center;
+			margin: calc(2 * var(--spacing));
+		}
 	}
 }
