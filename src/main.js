@@ -125,6 +125,7 @@ let TicTacticsTools = React.createClass({
 					},
 					previous: false,
 					turn: 'blue',
+					letter: 'x',
 				},
 			],
 		};
@@ -176,14 +177,34 @@ let TicTacticsTools = React.createClass({
 	render() {
 		return <div className="flex-row">
 		{this.state.megaboards.map(megaboard =>
-			<MegaBoard {...megaboard} onClick={this.handleClick} />
+			<div>
+				<header className="flex-row flex-justify-center">
+					<TurnIndicator turn={megaboard.turn} letter={megaboard.letter} />
+				</header>
+				<MegaBoard {...megaboard} onClick={this.handleClick} />
+			</div>
 		)}
 			<aside>
 				Sidebar
 			</aside>
 		</div>
 	},
-})
+});
+
+let TurnIndicator = React.createClass({
+	getDefaultProps() {
+		return {
+			turn: 'blue',
+			letter: 'x',
+		};
+	},
+
+	render() {
+		return <div className={`turn-indicator ${this.props.turn}`}>
+			<img src={(this.props.turn === 'blue' && this.props.letter === 'x' || this.props.turn === 'red' && this.props.letter === 'o' ? 'x' : 'o') + '.svg'} />
+		</div>
+	},
+});
 
 let MegaBoard = React.createClass({
 	getDefaultProps() {
@@ -307,9 +328,9 @@ let MegaBoard = React.createClass({
 					},
 				},
 			},
-			turn: 'blue',
 			previous: false,
-			letter: 'o',
+			turn: 'blue',
+			letter: 'x',
 			onClick: () => {},
 		};
 	},
@@ -361,9 +382,18 @@ let Board = React.createClass({
 			(tiles.c === tiles.e && tiles.e === tiles.g && (className = tiles.g))
 		) {
 			// this board has been won
+		} else if(!_.some(tiles, tile => !tile)) {
+			// it's a tie --> make this a wildcard
+			className += ' purple';
 		}
 
-		if (this.props.previous && this.props.previous[1].toUpperCase() === this.props.i) {className += ' ' + 'active';
+		if (this.props.previous) {
+			let i = this.props.previous[1].toUpperCase();
+			if (i === this.props.i) {
+				className += ' active';
+			}
+		} else {
+			className += ' active';
 		}
 		return className;
 	},
