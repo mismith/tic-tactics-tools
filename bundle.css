@@ -73,34 +73,6 @@ figure {
 	border-right: solid 5px transparent;
 	border-top: solid 5px #717170;
 }
-.btn {
-	-webkit-appearance: none;
-	   -moz-appearance: none;
-	        appearance: none;
-	-webkit-flex-shrink: 0;
-	    -ms-flex-negative: 0;
-	        flex-shrink: 0;
-	width: 100px;
-	height: 100px;
-	background-color: #4d4d4d;
-	color: white;
-	padding: 0;
-	border: solid 10px rgba(255,255,255,.4);
-	border-radius: 50%;
-	margin: 0;
-	outline: 0
-}
-.btn:disabled {
-	opacity: .5;
-	cursor: no-drop;
-}
-.btn:not(:disabled) {}
-.btn:not(:disabled).green-faded {
-	background-color: #76D380;
-}
-.btn:not(:disabled):active {
-	border-width: 5px;
-}
 
 #app {
 	display: -webkit-box;
@@ -298,19 +270,45 @@ figure {
 	display: none;
 }
 
-.turn-indicator {
-	display: -webkit-box;
-	display: -webkit-flex;
-	display: -ms-flexbox;
-	display: flex;
+.btn {
+	-webkit-appearance: none;
+	   -moz-appearance: none;
+	        appearance: none;
 	-webkit-flex-shrink: 0;
 	    -ms-flex-negative: 0;
 	        flex-shrink: 0;
 	width: 100px;
 	height: 100px;
-	background-color: #717170;
+	background-color: #4d4d4d;
+	background-clip: border-box;
+	color: white;
+	padding: 0;
+	border: solid 10px rgba(255,255,255,.4);
 	border-radius: 50%;
-	overflow: hidden;
+	margin: 0;
+	outline: 0;
+	cursor: pointer
+}
+
+.btn.mini {
+	width: 50px;
+	height: 50px;
+	border-width: 5px;
+}
+
+.btn:disabled {
+	opacity: .5;
+	cursor: no-drop;
+}
+
+.btn:not(:disabled) {}
+
+.btn:not(:disabled).green-faded {
+	background-color: #76D380;
+}
+
+.btn:not(:disabled):active {
+	border-width: 5px;
 }
 
 .gameview {
@@ -319,10 +317,6 @@ figure {
 
 .gameview > header {
 	margin: 16px 0;
-}
-
-.gameview > header .turn-indicator {
-	margin: 0 16px;
 }
 
 .gameview > header input,
@@ -337,10 +331,7 @@ figure {
 	font: inherit;
 	font-size: 1.5em;
 	text-align: center;
-}
-
-.gameview > header .btn {
-	margin-left: 16px;
+	margin: 0 16px;
 }
 .gameitems {
 	display: -webkit-box;
