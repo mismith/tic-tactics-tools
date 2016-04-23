@@ -78,32 +78,6 @@ figure {
 .raise {
 	@mixin raise;
 }
-.btn {
-	appearance: none;
-	flex-shrink: 0;
-	width: 100px;
-	height: 100px;
-	background-color: var(--darkest);
-	color: white;
-	padding: 0;
-	border: solid 10px rgba(255,255,255,.4);
-	border-radius: 50%;
-	margin: 0;
-	outline: 0;
-
-	&:disabled {
-		opacity: .5;
-		cursor: no-drop;
-	}
-	&:not(:disabled) {
-		&.green-faded {
-			background-color: var(--green-faded);
-		}
-		&:active {
-			border-width: 5px;
-		}
-	}
-}
 
 #app {
 	display: flex;
@@ -248,14 +222,38 @@ figure {
 	}
 }
 
-.turn-indicator {
-	display: flex;
+.btn {
+	appearance: none;
 	flex-shrink: 0;
 	width: 100px;
 	height: 100px;
-	background-color: var(--darker);
+	background-color: var(--darkest);
+	background-clip: border-box;
+	color: white;
+	padding: 0;
+	border: solid 10px rgba(255,255,255,.4);
 	border-radius: 50%;
-	overflow: hidden;
+	margin: 0;
+	outline: 0;
+	cursor: pointer;
+
+	&.mini {
+		width: 50px;
+		height: 50px;
+		border-width: 5px;
+	}
+	&:disabled {
+		opacity: .5;
+		cursor: no-drop;
+	}
+	&:not(:disabled) {
+		&.green-faded {
+			background-color: var(--green-faded);
+		}
+		&:active {
+			border-width: 5px;
+		}
+	}
 }
 
 .gameview {
@@ -264,9 +262,6 @@ figure {
 	& > header {
 		margin: var(--raise) 0;
 
-		& .turn-indicator {
-			margin: 0 var(--raise);
-		}
 		& input,
 		& output {
 			flex-basis: 50%;
@@ -274,9 +269,7 @@ figure {
 			font: inherit;
 			font-size: 1.5em;
 			text-align: center;
-		}
-		& .btn {
-			margin-left: var(--raise);
+			margin: 0 var(--raise);
 		}
 	}
 }

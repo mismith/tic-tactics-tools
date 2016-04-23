@@ -77,9 +77,12 @@ let TicTacticsTools = React.createClass({
 		this.firebase.onAuth(authData => {
 			if (authData) {
 				// user profile
-				let meRef = this.firebase.child('users').child(authData.uid),
-					me    = Object.assign(authData[authData.provider], {uid: authData.uid});
-				meRef.update(me);
+				let meRef = this.firebase.child('users').child(authData.uid);
+				meRef.update({
+					...authData[authData.provider],
+					uid: authData.uid,
+				});
+				this.bindAsObject(meRef, 'me');
 
 				// online presence
 				this.firebase.root().child('.info/connected').on('value', snap => {
@@ -90,11 +93,11 @@ let TicTacticsTools = React.createClass({
 				});
 
 				// games
-				let gamesRef = this.firebase.child('users:games').child(me.uid),
+				let gamesRef = this.firebase.child('users:games').child(authData.uid),
 					gameRef = gamesRef.child(gamesRef.push().key());
 				this.bindAsArray(gamesRef, 'games');
 
-				this.setState({me, gameRef});
+				this.setState({gameRef});
 			} else {
 				this.setState({me: authData});
 			}
@@ -108,6 +111,12 @@ let TicTacticsTools = React.createClass({
 		this.firebase.unauth();
 	},
 
+	pickGame(gameId) {
+		this.setState({
+			gameRef: this.firebaseRefs.games.child(gameId),
+		});
+	},
+
 	render() {
 		return <div className="flex-row" style={{width: '100%'}}>
 			<Game id="game" gameRef={this.state.gameRef} me={this.state.me} />
@@ -117,14 +126,14 @@ let TicTacticsTools = React.createClass({
 					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 				</header>
 				<ul className="gameitems">
-					<li className="gameitem new" onClick={e => this.setState({gameRef: this.firebaseRefs.games.child(this.firebaseRefs.games.push().key())})}>
+					<li className="gameitem new" onClick={this.pickGame.bind(this, this.firebaseRefs.games.push().key())}>
 						<figure>
 							<img src="plus.svg" height="50" />
 						</figure>
 						<div>New</div>
 					</li>
 				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
-					<li key={game['.key']} className={`gameitem ${game['.key'] === this.state.gameRef.key() ? 'active' : ''}`} onClick={e => this.setState({gameRef: this.firebaseRefs.games.child(game['.key'])})}>
+					<li key={game['.key']} className={`gameitem ${game['.key'] === this.state.gameRef.key() ? 'active' : ''}`} onClick={this.pickGame.bind(this, game['.key'])}>
 						<figure>
 							<MegaBoard className="mini" {...game} />
 						</figure>
@@ -218,12 +227,10 @@ let Game = React.createClass({
 		return <div className={`gameview ${className}`}>
 			<header className="flex-row flex-align-center">
 				<output>{me ? me.displayName : 'You'}</output>
-				<div className="turn-indicator">
-					<Tile player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} />
-				</div>
+				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
-				<button className="btn green-faded" disabled={!game.opponent} onClick={this.handleSave}>
-					<img src="check.svg" height="36" />
+				<button className="btn mini green-faded" disabled={!game.opponent} onClick={this.handleSave}>
+					<img src="check.svg" height="16" />
 				</button>
 			</header>
 			<MegaBoard onClick={this.handleClick} {...game} />
@@ -333,9 +340,9 @@ let Tile = React.createClass({
 	},
 
 	render() {
-		let {player, letter, isPrevious, isBlocked, ...props} = this.props;
+		let {player, letter, isPrevious, isBlocked, className, ...props} = this.props;
 
-		return <button className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''}`} onContextMenu={this.props.onClick} {...props}>
+		return <button className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''} ${className}`} onContextMenu={this.props.onClick} {...props}>
 		{letter &&
 			<img src={`${letter}.svg`} />
 		}

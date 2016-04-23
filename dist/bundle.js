@@ -95,9 +95,11 @@ var TicTacticsTools = React.createClass({
 			if (authData) {
 				(function () {
 					// user profile
-					var meRef = _this2.firebase.child('users').child(authData.uid),
-					    me = Object.assign(authData[authData.provider], { uid: authData.uid });
-					meRef.update(me);
+					var meRef = _this2.firebase.child('users').child(authData.uid);
+					meRef.update(_extends({}, authData[authData.provider], {
+						uid: authData.uid
+					}));
+					_this2.bindAsObject(meRef, 'me');
 
 					// online presence
 					_this2.firebase.root().child('.info/connected').on('value', function (snap) {
@@ -108,11 +110,11 @@ var TicTacticsTools = React.createClass({
 					});
 
 					// games
-					var gamesRef = _this2.firebase.child('users:games').child(me.uid),
+					var gamesRef = _this2.firebase.child('users:games').child(authData.uid),
 					    gameRef = gamesRef.child(gamesRef.push().key());
 					_this2.bindAsArray(gamesRef, 'games');
 
-					_this2.setState({ me: me, gameRef: gameRef });
+					_this2.setState({ gameRef: gameRef });
 				})();
 			} else {
 				_this2.setState({ me: authData });
@@ -124,6 +126,11 @@ var TicTacticsTools = React.createClass({
 	},
 	logout: function logout() {
 		this.firebase.unauth();
+	},
+	pickGame: function pickGame(gameId) {
+		this.setState({
+			gameRef: this.firebaseRefs.games.child(gameId)
+		});
 	},
 	render: function render() {
 		var _this3 = this;
@@ -154,9 +161,7 @@ var TicTacticsTools = React.createClass({
 					{ className: 'gameitems' },
 					React.createElement(
 						'li',
-						{ className: 'gameitem new', onClick: function onClick(e) {
-								return _this3.setState({ gameRef: _this3.firebaseRefs.games.child(_this3.firebaseRefs.games.push().key()) });
-							} },
+						{ className: 'gameitem new', onClick: this.pickGame.bind(this, this.firebaseRefs.games.push().key()) },
 						React.createElement(
 							'figure',
 							null,
@@ -173,9 +178,7 @@ var TicTacticsTools = React.createClass({
 					}).map(function (game) {
 						return React.createElement(
 							'li',
-							{ key: game['.key'], className: 'gameitem ' + (game['.key'] === _this3.state.gameRef.key() ? 'active' : ''), onClick: function onClick(e) {
-									return _this3.setState({ gameRef: _this3.firebaseRefs.games.child(game['.key']) });
-								} },
+							{ key: game['.key'], className: 'gameitem ' + (game['.key'] === _this3.state.gameRef.key() ? 'active' : ''), onClick: _this3.pickGame.bind(_this3, game['.key']) },
 							React.createElement(
 								'figure',
 								null,
@@ -286,18 +289,16 @@ var Game = React.createClass({
 					null,
 					me ? me.displayName : 'You'
 				),
-				React.createElement(
-					'div',
-					{ className: 'turn-indicator' },
-					React.createElement(Tile, { player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red })
-				),
+				React.createElement(Tile, { className: 'turn-indicator btn', player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red, onClick: function onClick(e) {
+						return _this4.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
+					} }),
 				React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent name', onChange: function onChange(e) {
 						return _this4.setState({ game: _extends({}, game, { opponent: e.target.value }) });
 					} }),
 				React.createElement(
 					'button',
-					{ className: 'btn green-faded', disabled: !game.opponent, onClick: this.handleSave },
-					React.createElement('img', { src: 'check.svg', height: '36' })
+					{ className: 'btn mini green-faded', disabled: !game.opponent, onClick: this.handleSave },
+					React.createElement('img', { src: 'check.svg', height: '16' })
 				)
 			),
 			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game))
@@ -421,12 +422,13 @@ var Tile = React.createClass({
 		var letter = _props4.letter;
 		var isPrevious = _props4.isPrevious;
 		var isBlocked = _props4.isBlocked;
+		var className = _props4.className;
 
-		var props = _objectWithoutProperties(_props4, ['player', 'letter', 'isPrevious', 'isBlocked']);
+		var props = _objectWithoutProperties(_props4, ['player', 'letter', 'isPrevious', 'isBlocked', 'className']);
 
 		return React.createElement(
 			'button',
-			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : ''), onContextMenu: this.props.onClick }, props),
+			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') + ' ' + className, onContextMenu: this.props.onClick }, props),
 			letter && React.createElement('img', { src: letter + '.svg' })
 		);
 	}
