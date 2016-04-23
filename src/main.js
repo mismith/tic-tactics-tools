@@ -1,124 +1,10 @@
-let Defaults = {
-	boards: {
-		A: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		B: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		C: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		D: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		E: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		F: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		G: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		H: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-		I: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null,
-			},
-		},
-	},
-	tiles: {
+function mapInOrder(obj, callback, context) {
+	return Object.keys(obj).sort((a,b) => a < b ? -1 : 1).map(k => callback.call(context || this, obj[k], k));
+}
+
+let Defaults = {};
+Defaults.tiles = function(overrides = {}){
+	return _.defaultsDeep(overrides, {
 		a: null,
 		b: null,
 		c: null,
@@ -128,8 +14,51 @@ let Defaults = {
 		g: null,
 		h: null,
 		i: null,
-	},
-};
+	});
+}
+Defaults.boards = function(overrides = {}){
+	return _.defaultsDeep(overrides, {
+		A: {
+			tiles: Defaults.tiles(),
+		},
+		B: {
+			tiles: Defaults.tiles(),
+		},
+		C: {
+			tiles: Defaults.tiles(),
+		},
+		D: {
+			tiles: Defaults.tiles(),
+		},
+		E: {
+			tiles: Defaults.tiles(),
+		},
+		F: {
+			tiles: Defaults.tiles(),
+		},
+		G: {
+			tiles: Defaults.tiles(),
+		},
+		H: {
+			tiles: Defaults.tiles(),
+		},
+		I: {
+			tiles: Defaults.tiles(),
+		},
+	});
+}
+Defaults.game = function(overrides = {}){
+	return _.defaultsDeep(overrides, {
+		boards: Defaults.boards(),
+		canChooseAnyTile: true,
+		previous: 'Ee',
+		turn: 'blue',
+		blue: 'x',
+		red: 'o',
+	});
+}
+
+
 
 let TicTacticsTools = React.createClass({
 	mixins: [
@@ -137,9 +66,9 @@ let TicTacticsTools = React.createClass({
 	],
 	getInitialState() {
 		return {
-			me:    null,
-			games: [],
-			selectedGameId: location.hash.substring(1),
+			me:      null,
+			games:   [],
+			gameRef: null,
 		};
 	},
 
@@ -147,10 +76,12 @@ let TicTacticsTools = React.createClass({
 		this.firebase = new Firebase('https://mismith.firebaseio.com/tic-tactics-tools');
 		this.firebase.onAuth(authData => {
 			if (authData) {
+				// user profile
 				let meRef = this.firebase.child('users').child(authData.uid),
 					me    = Object.assign(authData[authData.provider], {uid: authData.uid});
 				meRef.update(me);
 
+				// online presence
 				this.firebase.root().child('.info/connected').on('value', snap => {
 					if (snap.val()) {
 						meRef.child('online').onDisconnect().set(new Date().toISOString());
@@ -158,9 +89,12 @@ let TicTacticsTools = React.createClass({
 					}
 				});
 
-				this.bindAsArray(this.firebase.child('users:games').child(me.uid), 'games');
+				// games
+				let gamesRef = this.firebase.child('users:games').child(me.uid),
+					gameRef = gamesRef.child(gamesRef.push().key());
+				this.bindAsArray(gamesRef, 'games');
 
-				this.setState({me});
+				this.setState({me, gameRef});
 			} else {
 				this.setState({me: authData});
 			}
@@ -175,24 +109,32 @@ let TicTacticsTools = React.createClass({
 	},
 
 	render() {
-		return <div className="flex-row">
-			<Game gamesRef={this.firebase.child('users:games').child(this.state.me.uid)} id={this.state.selectedGameId} me={this.state.me} />
-			<aside>
+		return <div className="flex-row" style={{width: '100%'}}>
+			<Game id="game" gameRef={this.state.gameRef} me={this.state.me} />
+			<aside id="sidebar">
 				<header>
 					<button hidden={this.state.me} onClick={this.login}>Login with Facebook</button>
 					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 				</header>
-				<ul>
-				{this.state.games.map(game =>
-					<li key={game['.key']} className="gameitem flex-row">
-						<div>
+				<ul className="gameitems">
+					<li className="gameitem new" onClick={e => this.setState({gameRef: this.firebaseRefs.games.child(this.firebaseRefs.games.push().key())})}>
+						<figure>
+							<img src="plus.svg" height="50" />
+						</figure>
+						<div>New</div>
+					</li>
+				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
+					<li key={game['.key']} className={`gameitem ${game['.key'] === this.state.gameRef.key() ? 'active' : ''}`} onClick={e => this.setState({gameRef: this.firebaseRefs.games.child(game['.key'])})}>
+						<figure>
 							<MegaBoard className="mini" {...game} />
-						</div>
-						<div style={{flexGrow: 1}}>
-							{game.opponent}
-						</div>
+						</figure>
 						<div>
-							{game.updated}
+							<div>
+								{game.opponent || 'Opponent'}
+							</div>
+							<time datetime={game.updated || game.created} title={game.updated || game.created}>
+								{moment(game.updated || game.created).fromNow()}
+							</time>
 						</div>
 					</li>
 				)}
@@ -209,132 +151,82 @@ let Game = React.createClass({
 	],
 	getInitialState() {
 		return {
-			game: {
-				boards: Defaults.boards,
-				canChooseAnyTile: true,
-				previous: 'Ee',
-				turn: 'blue',
-				blue: 'x',
-				red: 'o',
-			},
+			game: Defaults.game(),
 		};
 	},
 
 	componentWillMount() {
-		if (this.props.gamesRef && this.props.id) {
-			this.bindAsObject(this.props.gamesRef.child(this.props.id), 'game');
+		if (this.props.gameRef) {
+			this.bindAsObject(this.props.gameRef, 'game');
+		}
+	},
+	componentWillReceiveProps(nextProps) {
+		if (this.props.gameRef !== nextProps.gameRef) {
+			if (this.firebaseRefs.game) this.unbind('game');
+			this.bindAsObject(nextProps.gameRef, 'game');
 		}
 	},
 
 	handleSave() {
-		if (!this.props.gamesRef) return;
+		if (!this.props.gameRef) return;
 
 		let game = Object.assign({}, this.state.game);
+		game[game.created ? 'updated' : 'created'] = new Date().toISOString();
+		delete game['.key'];
+		delete game['.value'];
 
-		if (game['.key']) {
-			delete game['.key'];
-			game.updated = new Date().toISOString();
-
-			this.props.gamesRef.child(this.props.id).update(game);
-		} else {
-			game.created = new Date().toISOString();
-
-			let id = this.props.gamesRef.push(game).key();
-
-			this.props.id = id;
-			location.hash = key;
-		}
+		this.props.gameRef.update(game);
 	},
 
 	handleClick(i, j, player, previous, e) {
 		// @TODO: check/confirm if allowed
+		let game = Defaults.game(this.state.game);
+
 		if (e.altKey) {
 			// force set/toggle tile
 			e.preventDefault();
 
-			if (!this.state.game) this.state.game = {};
-			if (!this.state.game.boards) this.state.game.boards = {};
-			if (!this.state.game.boards[i]) this.state.game.boards[i] = {};
-			if (!this.state.game.boards[i].tiles) this.state.game.boards[i].tiles = {};
-
 			let newPlayer = e.type === 'contextmenu' ? 'red' : 'blue';
-			if (this.state.game.boards[i].tiles[j] === newPlayer) newPlayer = null;
+			if (game.boards[i].tiles[j] === newPlayer) newPlayer = null;
 
-			this.setState({
-				game: {
-					...this.state.game,
-					boards: {
-						...this.state.game.boards,
-						[i]: {
-							...this.state.game.boards[i],
-							tiles: {
-								...this.state.game.boards[i].tiles,
-								[j]: newPlayer,
-							},
-						},
-					},
-				},
-			});
+			game.boards[i].tiles[j] = newPlayer;
 		} else {
 			// make a turn
-			let newPlayer = this.state.game.turn,
-				nextTurn = newPlayer === 'blue' ? 'red' : 'blue';
-
-			let canChooseAnyTile = null;
+			game.canChooseAnyTile = false;
 			if (previous) {
 				let J = j.toUpperCase(),
-					tilesLeftInDestinationBoard = _.filter(Defaults.tiles, (nil, jj) => {
-						return !(this.state.game.boards[J] && this.state.game.boards[J].tiles && this.state.game.boards[J].tiles[jj]);
-					}).length;
+					tilesLeftInDestinationBoard = _.filter(game.boards[J].tiles, tile => !tile).length;
 
 				if (
 					!tilesLeftInDestinationBoard || // board is already full
 					J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
 				) {
-					canChooseAnyTile = true;
+					game.canChooseAnyTile = true;
 				}
 			}
-
-			if (!this.state.game) this.state.game = {};
-			if (!this.state.game.boards) this.state.game.boards = {};
-			if (!this.state.game.boards[i]) this.state.game.boards[i] = {};
-			if (!this.state.game.boards[i].tiles) this.state.game.boards[i].tiles = {};
-			this.setState({
-				game: {
-					...this.state.game,
-					boards: {
-						...this.state.game.boards,
-						[i]: {
-							...this.state.game.boards[i],
-							tiles: {
-								...this.state.game.boards[i].tiles,
-								[j]: newPlayer,
-							},
-						},
-					},
-					canChooseAnyTile: canChooseAnyTile,
-					previous: i + j,
-					turn: nextTurn,
-				},
-			});
+			game.boards[i].tiles[j] = game.turn;
+			game.previous = i + j;
+			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
+		this.setState({game});
 	},
 
 	render() {
-		let {me, className, ...props} = this.props;
-		let {game} = this.state;
+		let {me, className, ...props} = this.props,
+			game = Defaults.game(this.state.game);
+
 		return <div className={`gameview ${className}`}>
 			<header className="flex-row flex-align-center">
-				<output>{me.displayName}</output>
+				<output>{me ? me.displayName : 'You'}</output>
 				<div className="turn-indicator">
 					<Tile player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} />
 				</div>
-				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...this.state.game, opponent: e.target.value}})} />
+				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
+				<button className="btn green-faded" disabled={!game.opponent} onClick={this.handleSave}>
+					<img src="check.svg" height="36" />
+				</button>
 			</header>
 			<MegaBoard onClick={this.handleClick} {...game} />
-			<footer className="flex-row flex-align-center">
-				<button onClick={this.handleSave}>Save</button>
-			</footer>
 		</div>
 	},
 });
@@ -342,15 +234,17 @@ let Game = React.createClass({
 let MegaBoard = React.createClass({
 	getDefaultProps() {
 		return {
-			boards: Defaults.boards,
+			boards: Defaults.boards(),
 		};
 	},
 
 	render() {
 		let {boards, className, ...props} = this.props;
+		boards = Defaults.boards(boards);
+
 		return <div className={`megaboard ${className}`}>
-		{_.map(Defaults.boards, (nil, i) =>
-			<Board key={i} i={i} tiles={boards[i] ? boards[i].tiles : Defaults.tiles} {...props} />
+		{mapInOrder(boards, (board, i) =>
+			<Board key={i} i={i} tiles={board.tiles} {...props} />
 		)}
 		</div>
 	},
@@ -359,9 +253,9 @@ let MegaBoard = React.createClass({
 let Board = React.createClass({
 	getDefaultProps() {
 		return {
-			tiles: Defaults.tiles,
+			tiles: Defaults.tiles(),
 			i: 'A',
-			canChooseAnyTile: null,
+			canChooseAnyTile: false,
 			blue: 'x',
 			red: 'o',
 			onClick: () => {},
@@ -370,7 +264,7 @@ let Board = React.createClass({
 
 	getClassName() {
 		let className = '',
-			tiles = this.props.tiles;
+			tiles = Defaults.tiles(this.props.tiles);
 
 		if (
 			// rows
@@ -389,7 +283,7 @@ let Board = React.createClass({
 		) {
 			// this board has been won
 			// (player/winner sets className inline above)
-		} else if (_.filter(Defaults.tiles, (nil, jj) => !tiles[jj]).length === 0) {
+		} else if (_.filter(tiles, tile => !tile).length === 0) {
 			// no active tiles left
 			// it's a tie --> make this a wildcard
 			className += ' purple';
@@ -408,19 +302,20 @@ let Board = React.createClass({
 	render() {
 		let {i, tiles, canChooseAnyTile, previous, blue, red, onClick, ...props} = this.props,
 			zIndex = 0;
+		tiles = Defaults.tiles(tiles);
 
 		return <div className={`board ${this.getClassName()}`}>
-		{_.map(Defaults.tiles, (nil, j) =>
+		{mapInOrder(tiles, (tile, j) =>
 			<Tile
 				key={j}
-				player={tiles[j] || null}
-				letter={tiles[j] === 'blue' ? blue : (tiles[j] === 'red' ? red : false)}
+				player={tile || null}
+				letter={tile === 'blue' ? blue : (tile === 'red' ? red : false)}
 				isPrevious={i + j === previous}
 				isBlocked={
 					j.toUpperCase() + i.toLowerCase() === previous && // can't send back
-					_.filter(Defaults.tiles, (nil, jj) => !tiles[jj]).length > 1 // don't block if only one left
+					_.filter(tiles, tile2 => !tile2).length > 1 // don't block if only one left
 				}
-				onClick={onClick.bind(this, i, j, tiles[j], previous)}
+				onClick={onClick.bind(null, i, j, tile, previous)}
 				style={{zIndex: 3-zIndex++%3}}
 				{...props}
 			/>

@@ -11,10 +11,38 @@
 	--blue-faded: #77dee9;
 	--purple: #8b4fda;
 	--green: #61bb1c;
+	--green-faded: #76D380;
 
 	--raise: 16px;
 	--spacing: 4px;
 }
+@define-mixin raise $raise: 5px, $color: var(--darker) {
+	transform: translate($raise, -$raise);
+
+	&:before,
+	&:after {
+		content: "";
+		position: absolute;
+		pointer-events: none;
+	}
+	&:before {
+		left: -$raise;
+		top: 0;
+		bottom: -$raise;
+		width: 0;
+		border-top: solid $raise transparent;
+		border-right: solid $raise $color;
+	}
+	&:after {
+		left: -$raise;
+		bottom: -$raise;
+		right: 0;
+		height: 0;
+		border-right: solid $raise transparent;
+		border-top: solid $raise $color;
+	}
+}
+
 * {
 	box-sizing: border-box;
 }
@@ -28,10 +56,18 @@ body {
 	padding: 0;
 	margin: 0;
 }
+figure {
+	padding: 0;
+	margin: 0;
+}
 
 
 .flex-row {
 	display: flex;
+}
+.flex-column {
+	display: flex;
+	flex-direction: column;
 }
 .flex-justify-center {
 	justify-content: center;
@@ -39,11 +75,44 @@ body {
 .flex-align-center {
 	align-items: center;
 }
+.raise {
+	@mixin raise;
+}
+.btn {
+	appearance: none;
+	flex-shrink: 0;
+	width: 100px;
+	height: 100px;
+	background-color: var(--darkest);
+	color: white;
+	padding: 0;
+	border: solid 10px rgba(255,255,255,.4);
+	border-radius: 50%;
+	margin: 0;
+	outline: 0;
+
+	&:disabled {
+		opacity: .5;
+		cursor: no-drop;
+	}
+	&:not(:disabled) {
+		&.green-faded {
+			background-color: var(--green-faded);
+		}
+		&:active {
+			border-width: 5px;
+		}
+	}
+}
 
 #app {
 	display: flex;
 	width: 100%;
 	height: 100%;
+}
+#sidebar {
+	flex-grow: 1;
+	padding: var(--raise);
 }
 
 @keyframes previous-blue {
@@ -108,31 +177,8 @@ body {
 		}
 	}
 	&.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
-		transform: translate(var(--raise), -var(--raise));
+		@mixin raise var(--raise);
 		cursor: pointer;
-
-		&:before,
-		&:after {
-			content: "";
-			position: absolute;
-			pointer-events: none;
-		}
-		&:before {
-			left: -var(--raise);
-			top: 0;
-			bottom: -var(--raise);
-			width: 0;
-			border-top: solid var(--raise) transparent;
-			border-right: solid var(--raise) var(--darker);
-		}
-		&:after {
-			left: -var(--raise);
-			bottom: -var(--raise);
-			right: 0;
-			height: 0;
-			border-right: solid var(--raise) transparent;
-			border-top: solid var(--raise) var(--darker);
-		}
 	}
 	&.blue {
 		& .tile {
@@ -165,6 +211,7 @@ body {
 	flex-wrap: wrap;
 	width: 800px;
 	height: 800px;
+	margin: -calc(2 * var(--spacing));
 
 	& .board {
 		width: calc(33.333% - 2 * var(--spacing));
@@ -212,9 +259,14 @@ body {
 }
 
 .gameview {
-	& > header {
-		margin: calc(2 * var(--spacing)) 0;
+	padding: var(--raise);
 
+	& > header {
+		margin: var(--raise) 0;
+
+		& .turn-indicator {
+			margin: 0 var(--raise);
+		}
 		& input,
 		& output {
 			flex-basis: 50%;
@@ -222,7 +274,65 @@ body {
 			font: inherit;
 			font-size: 1.5em;
 			text-align: center;
-			margin: calc(2 * var(--spacing));
+		}
+		& .btn {
+			margin-left: var(--raise);
+		}
+	}
+}
+.gameitems {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+}
+.gameitem {
+	display: flex;
+	cursor: pointer;
+	margin-bottom: calc(2 * var(--spacing));
+
+	& > figure {
+		position: relative;
+		margin-right: var(--spacing);
+		z-index: 2;
+	}
+	& > div {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		flex-grow: 1;
+		background-color: var(--dark);
+		color: white;
+		padding: var(--spacing) var(--raise);
+	}
+	&.active {
+		& > div {
+			background-color: var(--blue);
+		}
+	}
+	&:not(:active):not(.new) {
+		& > * {
+			@mixin raise;
+		}
+	}
+	&.new {
+		background-color: var(--blue);
+		color: white;
+
+		& > figure {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 100px;
+			height: 100px;
+			margin-right: 0;
+		}
+		& > div {
+			background-color: var(--bg);
+			color: var(--blue);
+			margin: var(--spacing);
+		}
+		&:not(:active) {
+			@mixin raise var(--spacing), color(var(--blue) blackness(+15%));
 		}
 	}
 }

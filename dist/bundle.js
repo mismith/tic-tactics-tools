@@ -4,129 +4,21 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function mapInOrder(obj, callback, context) {
+	var _this = this;
 
-var Defaults = {
-	boards: {
-		A: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		B: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		C: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		D: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		E: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		F: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		G: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		H: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		},
-		I: {
-			tiles: {
-				a: null,
-				b: null,
-				c: null,
-				d: null,
-				e: null,
-				f: null,
-				g: null,
-				h: null,
-				i: null
-			}
-		}
-	},
-	tiles: {
+	return Object.keys(obj).sort(function (a, b) {
+		return a < b ? -1 : 1;
+	}).map(function (k) {
+		return callback.call(context || _this, obj[k], k);
+	});
+}
+
+var Defaults = {};
+Defaults.tiles = function () {
+	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	return _.defaultsDeep(overrides, {
 		a: null,
 		b: null,
 		c: null,
@@ -136,7 +28,52 @@ var Defaults = {
 		g: null,
 		h: null,
 		i: null
-	}
+	});
+};
+Defaults.boards = function () {
+	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	return _.defaultsDeep(overrides, {
+		A: {
+			tiles: Defaults.tiles()
+		},
+		B: {
+			tiles: Defaults.tiles()
+		},
+		C: {
+			tiles: Defaults.tiles()
+		},
+		D: {
+			tiles: Defaults.tiles()
+		},
+		E: {
+			tiles: Defaults.tiles()
+		},
+		F: {
+			tiles: Defaults.tiles()
+		},
+		G: {
+			tiles: Defaults.tiles()
+		},
+		H: {
+			tiles: Defaults.tiles()
+		},
+		I: {
+			tiles: Defaults.tiles()
+		}
+	});
+};
+Defaults.game = function () {
+	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	return _.defaultsDeep(overrides, {
+		boards: Defaults.boards(),
+		canChooseAnyTile: true,
+		previous: 'Ee',
+		turn: 'blue',
+		blue: 'x',
+		red: 'o'
+	});
 };
 
 var TicTacticsTools = React.createClass({
@@ -147,33 +84,38 @@ var TicTacticsTools = React.createClass({
 		return {
 			me: null,
 			games: [],
-			selectedGameId: location.hash.substring(1)
+			gameRef: null
 		};
 	},
 	componentWillMount: function componentWillMount() {
-		var _this = this;
+		var _this2 = this;
 
 		this.firebase = new Firebase('https://mismith.firebaseio.com/tic-tactics-tools');
 		this.firebase.onAuth(function (authData) {
 			if (authData) {
 				(function () {
-					var meRef = _this.firebase.child('users').child(authData.uid),
+					// user profile
+					var meRef = _this2.firebase.child('users').child(authData.uid),
 					    me = Object.assign(authData[authData.provider], { uid: authData.uid });
 					meRef.update(me);
 
-					_this.firebase.root().child('.info/connected').on('value', function (snap) {
+					// online presence
+					_this2.firebase.root().child('.info/connected').on('value', function (snap) {
 						if (snap.val()) {
 							meRef.child('online').onDisconnect().set(new Date().toISOString());
 							meRef.child('online').set(true);
 						}
 					});
 
-					_this.bindAsArray(_this.firebase.child('users:games').child(me.uid), 'games');
+					// games
+					var gamesRef = _this2.firebase.child('users:games').child(me.uid),
+					    gameRef = gamesRef.child(gamesRef.push().key());
+					_this2.bindAsArray(gamesRef, 'games');
 
-					_this.setState({ me: me });
+					_this2.setState({ me: me, gameRef: gameRef });
 				})();
 			} else {
-				_this.setState({ me: authData });
+				_this2.setState({ me: authData });
 			}
 		});
 	},
@@ -184,13 +126,15 @@ var TicTacticsTools = React.createClass({
 		this.firebase.unauth();
 	},
 	render: function render() {
+		var _this3 = this;
+
 		return React.createElement(
 			'div',
-			{ className: 'flex-row' },
-			React.createElement(Game, { gamesRef: this.firebase.child('users:games').child(this.state.me.uid), id: this.state.selectedGameId, me: this.state.me }),
+			{ className: 'flex-row', style: { width: '100%' } },
+			React.createElement(Game, { id: 'game', gameRef: this.state.gameRef, me: this.state.me }),
 			React.createElement(
 				'aside',
-				null,
+				{ id: 'sidebar' },
 				React.createElement(
 					'header',
 					null,
@@ -207,25 +151,49 @@ var TicTacticsTools = React.createClass({
 				),
 				React.createElement(
 					'ul',
-					null,
-					this.state.games.map(function (game) {
+					{ className: 'gameitems' },
+					React.createElement(
+						'li',
+						{ className: 'gameitem new', onClick: function onClick(e) {
+								return _this3.setState({ gameRef: _this3.firebaseRefs.games.child(_this3.firebaseRefs.games.push().key()) });
+							} },
+						React.createElement(
+							'figure',
+							null,
+							React.createElement('img', { src: 'plus.svg', height: '50' })
+						),
+						React.createElement(
+							'div',
+							null,
+							'New'
+						)
+					),
+					this.state.games.sort(function (a, b) {
+						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
+					}).map(function (game) {
 						return React.createElement(
 							'li',
-							{ key: game['.key'], className: 'gameitem flex-row' },
+							{ key: game['.key'], className: 'gameitem ' + (game['.key'] === _this3.state.gameRef.key() ? 'active' : ''), onClick: function onClick(e) {
+									return _this3.setState({ gameRef: _this3.firebaseRefs.games.child(game['.key']) });
+								} },
 							React.createElement(
-								'div',
+								'figure',
 								null,
 								React.createElement(MegaBoard, _extends({ className: 'mini' }, game))
 							),
 							React.createElement(
 								'div',
-								{ style: { flexGrow: 1 } },
-								game.opponent
-							),
-							React.createElement(
-								'div',
 								null,
-								game.updated
+								React.createElement(
+									'div',
+									null,
+									game.opponent || 'Opponent'
+								),
+								React.createElement(
+									'time',
+									{ datetime: game.updated || game.created, title: game.updated || game.created },
+									moment(game.updated || game.created).fromNow()
+								)
 							)
 						);
 					})
@@ -241,110 +209,71 @@ var Game = React.createClass({
 	mixins: [ReactFireMixin],
 	getInitialState: function getInitialState() {
 		return {
-			game: {
-				boards: Defaults.boards,
-				canChooseAnyTile: true,
-				previous: 'Ee',
-				turn: 'blue',
-				blue: 'x',
-				red: 'o'
-			}
+			game: Defaults.game()
 		};
 	},
 	componentWillMount: function componentWillMount() {
-		if (this.props.gamesRef && this.props.id) {
-			this.bindAsObject(this.props.gamesRef.child(this.props.id), 'game');
+		if (this.props.gameRef) {
+			this.bindAsObject(this.props.gameRef, 'game');
+		}
+	},
+	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+		if (this.props.gameRef !== nextProps.gameRef) {
+			if (this.firebaseRefs.game) this.unbind('game');
+			this.bindAsObject(nextProps.gameRef, 'game');
 		}
 	},
 	handleSave: function handleSave() {
-		if (!this.props.gamesRef) return;
+		if (!this.props.gameRef) return;
 
 		var game = Object.assign({}, this.state.game);
+		game[game.created ? 'updated' : 'created'] = new Date().toISOString();
+		delete game['.key'];
+		delete game['.value'];
 
-		if (game['.key']) {
-			delete game['.key'];
-			game.updated = new Date().toISOString();
-
-			this.props.gamesRef.child(this.props.id).update(game);
-		} else {
-			game.created = new Date().toISOString();
-
-			var id = this.props.gamesRef.push(game).key();
-
-			this.props.id = id;
-			location.hash = key;
-		}
+		this.props.gameRef.update(game);
 	},
 	handleClick: function handleClick(i, j, player, previous, e) {
-		var _this2 = this;
-
 		// @TODO: check/confirm if allowed
+		var game = Defaults.game(this.state.game);
+
 		if (e.altKey) {
 			// force set/toggle tile
 			e.preventDefault();
 
-			if (!this.state.game) this.state.game = {};
-			if (!this.state.game.boards) this.state.game.boards = {};
-			if (!this.state.game.boards[i]) this.state.game.boards[i] = {};
-			if (!this.state.game.boards[i].tiles) this.state.game.boards[i].tiles = {};
-
 			var newPlayer = e.type === 'contextmenu' ? 'red' : 'blue';
-			if (this.state.game.boards[i].tiles[j] === newPlayer) newPlayer = null;
+			if (game.boards[i].tiles[j] === newPlayer) newPlayer = null;
 
-			this.setState({
-				game: _extends({}, this.state.game, {
-					boards: _extends({}, this.state.game.boards, _defineProperty({}, i, _extends({}, this.state.game.boards[i], {
-						tiles: _extends({}, this.state.game.boards[i].tiles, _defineProperty({}, j, newPlayer))
-					})))
-				})
-			});
+			game.boards[i].tiles[j] = newPlayer;
 		} else {
 			// make a turn
-			var _newPlayer = this.state.game.turn,
-			    nextTurn = _newPlayer === 'blue' ? 'red' : 'blue';
-
-			var canChooseAnyTile = null;
+			game.canChooseAnyTile = false;
 			if (previous) {
-				(function () {
-					var J = j.toUpperCase(),
-					    tilesLeftInDestinationBoard = _.filter(Defaults.tiles, function (nil, jj) {
-						return !(_this2.state.game.boards[J] && _this2.state.game.boards[J].tiles && _this2.state.game.boards[J].tiles[jj]);
-					}).length;
+				var J = j.toUpperCase(),
+				    tilesLeftInDestinationBoard = _.filter(game.boards[J].tiles, function (tile) {
+					return !tile;
+				}).length;
 
-					if (!tilesLeftInDestinationBoard || // board is already full
-					J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
-					) {
-							canChooseAnyTile = true;
-						}
-				})();
+				if (!tilesLeftInDestinationBoard || // board is already full
+				J === i && tilesLeftInDestinationBoard <= 1 // took last tile in own board
+				) {
+						game.canChooseAnyTile = true;
+					}
 			}
-
-			if (!this.state.game) this.state.game = {};
-			if (!this.state.game.boards) this.state.game.boards = {};
-			if (!this.state.game.boards[i]) this.state.game.boards[i] = {};
-			if (!this.state.game.boards[i].tiles) this.state.game.boards[i].tiles = {};
-			this.setState({
-				game: _extends({}, this.state.game, {
-					boards: _extends({}, this.state.game.boards, _defineProperty({}, i, _extends({}, this.state.game.boards[i], {
-						tiles: _extends({}, this.state.game.boards[i].tiles, _defineProperty({}, j, _newPlayer))
-					}))),
-					canChooseAnyTile: canChooseAnyTile,
-					previous: i + j,
-					turn: nextTurn
-				})
-			});
+			game.boards[i].tiles[j] = game.turn;
+			game.previous = i + j;
+			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
+		this.setState({ game: game });
 	},
 	render: function render() {
-		var _this3 = this;
+		var _this4 = this;
 
 		var _props = this.props;
 		var me = _props.me;
 		var className = _props.className;
-
 		var props = _objectWithoutProperties(_props, ['me', 'className']);
-
-		var game = this.state.game;
+		var game = Defaults.game(this.state.game);
 
 		return React.createElement(
 			'div',
@@ -355,7 +284,7 @@ var Game = React.createClass({
 				React.createElement(
 					'output',
 					null,
-					me.displayName
+					me ? me.displayName : 'You'
 				),
 				React.createElement(
 					'div',
@@ -363,19 +292,15 @@ var Game = React.createClass({
 					React.createElement(Tile, { player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red })
 				),
 				React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent name', onChange: function onChange(e) {
-						return _this3.setState({ game: _extends({}, _this3.state.game, { opponent: e.target.value }) });
-					} })
-			),
-			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game)),
-			React.createElement(
-				'footer',
-				{ className: 'flex-row flex-align-center' },
+						return _this4.setState({ game: _extends({}, game, { opponent: e.target.value }) });
+					} }),
 				React.createElement(
 					'button',
-					{ onClick: this.handleSave },
-					'Save'
+					{ className: 'btn green-faded', disabled: !game.opponent, onClick: this.handleSave },
+					React.createElement('img', { src: 'check.svg', height: '36' })
 				)
-			)
+			),
+			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game))
 		);
 	}
 });
@@ -384,7 +309,7 @@ var MegaBoard = React.createClass({
 	displayName: 'MegaBoard',
 	getDefaultProps: function getDefaultProps() {
 		return {
-			boards: Defaults.boards
+			boards: Defaults.boards()
 		};
 	},
 	render: function render() {
@@ -394,11 +319,13 @@ var MegaBoard = React.createClass({
 
 		var props = _objectWithoutProperties(_props2, ['boards', 'className']);
 
+		boards = Defaults.boards(boards);
+
 		return React.createElement(
 			'div',
 			{ className: 'megaboard ' + className },
-			_.map(Defaults.boards, function (nil, i) {
-				return React.createElement(Board, _extends({ key: i, i: i, tiles: boards[i] ? boards[i].tiles : Defaults.tiles }, props));
+			mapInOrder(boards, function (board, i) {
+				return React.createElement(Board, _extends({ key: i, i: i, tiles: board.tiles }, props));
 			})
 		);
 	}
@@ -408,9 +335,9 @@ var Board = React.createClass({
 	displayName: 'Board',
 	getDefaultProps: function getDefaultProps() {
 		return {
-			tiles: Defaults.tiles,
+			tiles: Defaults.tiles(),
 			i: 'A',
-			canChooseAnyTile: null,
+			canChooseAnyTile: false,
 			blue: 'x',
 			red: 'o',
 			onClick: function onClick() {}
@@ -418,7 +345,7 @@ var Board = React.createClass({
 	},
 	getClassName: function getClassName() {
 		var className = '',
-		    tiles = this.props.tiles;
+		    tiles = Defaults.tiles(this.props.tiles);
 
 		if (
 		// rows
@@ -431,8 +358,8 @@ var Board = React.createClass({
 		tiles.a === tiles.e && tiles.e === tiles.i && (className = tiles.i || '') || tiles.c === tiles.e && tiles.e === tiles.g && (className = tiles.g || '')) {
 			// this board has been won
 			// (player/winner sets className inline above)
-		} else if (_.filter(Defaults.tiles, function (nil, jj) {
-				return !tiles[jj];
+		} else if (_.filter(tiles, function (tile) {
+				return !tile;
 			}).length === 0) {
 				// no active tiles left
 				// it's a tie --> make this a wildcard
@@ -446,8 +373,6 @@ var Board = React.createClass({
 		return className;
 	},
 	render: function render() {
-		var _this4 = this;
-
 		var _props3 = this.props;
 		var i = _props3.i;
 		var tiles = _props3.tiles;
@@ -458,22 +383,23 @@ var Board = React.createClass({
 		var onClick = _props3.onClick;
 		var props = _objectWithoutProperties(_props3, ['i', 'tiles', 'canChooseAnyTile', 'previous', 'blue', 'red', 'onClick']);
 		var zIndex = 0;
+		tiles = Defaults.tiles(tiles);
 
 		return React.createElement(
 			'div',
 			{ className: 'board ' + this.getClassName() },
-			_.map(Defaults.tiles, function (nil, j) {
+			mapInOrder(tiles, function (tile, j) {
 				return React.createElement(Tile, _extends({
 					key: j,
-					player: tiles[j] || null,
-					letter: tiles[j] === 'blue' ? blue : tiles[j] === 'red' ? red : false,
+					player: tile || null,
+					letter: tile === 'blue' ? blue : tile === 'red' ? red : false,
 					isPrevious: i + j === previous,
 					isBlocked: j.toUpperCase() + i.toLowerCase() === previous && // can't send back
-					_.filter(Defaults.tiles, function (nil, jj) {
-						return !tiles[jj];
+					_.filter(tiles, function (tile2) {
+						return !tile2;
 					}).length > 1 // don't block if only one left
 					,
-					onClick: onClick.bind(_this4, i, j, tiles[j], previous),
+					onClick: onClick.bind(null, i, j, tile, previous),
 					style: { zIndex: 3 - zIndex++ % 3 }
 				}, props));
 			})
