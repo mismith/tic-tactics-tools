@@ -11,6 +11,10 @@ body {
 	padding: 0;
 	margin: 0;
 }
+figure {
+	padding: 0;
+	margin: 0;
+}
 
 
 .flex-row {
@@ -18,6 +22,17 @@ body {
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
+}
+.flex-column {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	    -ms-flex-direction: column;
+	        flex-direction: column;
 }
 .flex-justify-center {
 	-webkit-box-pack: center;
@@ -32,6 +47,60 @@ body {
 	            -ms-grid-row-align: center;
 	        align-items: center;
 }
+.raise {
+	-webkit-transform: translate(5px, -5px);
+	        transform: translate(5px, -5px);
+}
+.raise:before,
+	.raise:after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+.raise:before {
+	left: -5px;
+	top: 0;
+	bottom: -5px;
+	width: 0;
+	border-top: solid 5px transparent;
+	border-right: solid 5px #717170;
+}
+.raise:after {
+	left: -5px;
+	bottom: -5px;
+	right: 0;
+	height: 0;
+	border-right: solid 5px transparent;
+	border-top: solid 5px #717170;
+}
+.btn {
+	-webkit-appearance: none;
+	   -moz-appearance: none;
+	        appearance: none;
+	-webkit-flex-shrink: 0;
+	    -ms-flex-negative: 0;
+	        flex-shrink: 0;
+	width: 100px;
+	height: 100px;
+	background-color: #4d4d4d;
+	color: white;
+	padding: 0;
+	border: solid 10px rgba(255,255,255,.4);
+	border-radius: 50%;
+	margin: 0;
+	outline: 0
+}
+.btn:disabled {
+	opacity: .5;
+	cursor: no-drop;
+}
+.btn:not(:disabled) {}
+.btn:not(:disabled).green-faded {
+	background-color: #76D380;
+}
+.btn:not(:disabled):active {
+	border-width: 5px;
+}
 
 #app {
 	display: -webkit-box;
@@ -40,6 +109,13 @@ body {
 	display: flex;
 	width: 100%;
 	height: 100%;
+}
+#sidebar {
+	-webkit-box-flex: 1;
+	-webkit-flex-grow: 1;
+	    -ms-flex-positive: 1;
+	        flex-grow: 1;
+	padding: 16px;
 }
 
 @-webkit-keyframes previous-blue {
@@ -126,8 +202,7 @@ body {
 	height: calc(33.333% - 2 * 4px);
 	margin: 4px;
 }
-.board:nth-child(2n) {
-}
+.board:nth-child(2n) {}
 .board:nth-child(2n) .tile {
 	background-color: #a7a7a7;
 }
@@ -137,7 +212,7 @@ body {
 	cursor: pointer;
 }
 .board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before,
-		.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+	.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
 	content: "";
 	position: absolute;
 	pointer-events: none;
@@ -158,28 +233,23 @@ body {
 	border-right: solid 16px transparent;
 	border-top: solid 16px #717170;
 }
-.board.blue {
-}
-.board.blue .tile {
-}
+.board.blue {}
+.board.blue .tile {}
 .board.blue .tile:not(.blue):not(.red) {
 	background-color: #77dee9;
 }
 .board.blue .tile.red {
 	background-color: #00c2d7 !important;
 }
-.board.red {
-}
-.board.red .tile {
-}
+.board.red {}
+.board.red .tile {}
 .board.red .tile:not(.blue):not(.red) {
 	background-color: #ffaba9;
 }
 .board.red .tile.blue {
 	background-color: #fe392e !important;
 }
-.board.purple {
-}
+.board.purple {}
 .board.purple .tile {
 	background-color: #8b4fda !important;
 }
@@ -192,7 +262,8 @@ body {
 	    -ms-flex-wrap: wrap;
 	        flex-wrap: wrap;
 	width: 800px;
-	height: 800px
+	height: 800px;
+	margin: -8px
 }
 .megaboard .board {
 	width: calc(33.333% - 2 * 4px);
@@ -243,10 +314,15 @@ body {
 }
 
 .gameview {
+	padding: 16px
 }
 
 .gameview > header {
-	margin: 8px 0;
+	margin: 16px 0;
+}
+
+.gameview > header .turn-indicator {
+	margin: 0 16px;
 }
 
 .gameview > header input,
@@ -261,5 +337,138 @@ body {
 	font: inherit;
 	font-size: 1.5em;
 	text-align: center;
-	margin: 8px;
+}
+
+.gameview > header .btn {
+	margin-left: 16px;
+}
+.gameitems {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	    -ms-flex-direction: column;
+	        flex-direction: column;
+	padding: 0;
+}
+.gameitem {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	cursor: pointer;
+	margin-bottom: 8px
+}
+.gameitem > figure {
+	position: relative;
+	margin-right: 4px;
+	z-index: 2;
+}
+.gameitem > div {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	    -ms-flex-direction: column;
+	        flex-direction: column;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	    -ms-flex-pack: center;
+	        justify-content: center;
+	-webkit-box-flex: 1;
+	-webkit-flex-grow: 1;
+	    -ms-flex-positive: 1;
+	        flex-grow: 1;
+	background-color: #a7a7a7;
+	color: white;
+	padding: 4px 16px;
+}
+.gameitem.active {}
+.gameitem.active > div {
+	background-color: #00c2d7;
+}
+.gameitem:not(:active):not(.new) {}
+.gameitem:not(:active):not(.new) > * {
+	-webkit-transform: translate(5px, -5px);
+	        transform: translate(5px, -5px);
+}
+.gameitem:not(:active):not(.new) > *:before,
+	.gameitem:not(:active):not(.new) > *:after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+.gameitem:not(:active):not(.new) > *:before {
+	left: -5px;
+	top: 0;
+	bottom: -5px;
+	width: 0;
+	border-top: solid 5px transparent;
+	border-right: solid 5px #717170;
+}
+.gameitem:not(:active):not(.new) > *:after {
+	left: -5px;
+	bottom: -5px;
+	right: 0;
+	height: 0;
+	border-right: solid 5px transparent;
+	border-top: solid 5px #717170;
+}
+.gameitem.new {
+	background-color: #00c2d7;
+	color: white;
+}
+.gameitem.new > figure {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	    -ms-flex-pack: center;
+	        justify-content: center;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	    -ms-flex-align: center;
+	        align-items: center;
+	width: 100px;
+	height: 100px;
+	margin-right: 0;
+}
+.gameitem.new > div {
+	background-color: #e8e8e8;
+	color: #00c2d7;
+	margin: 4px;
+}
+.gameitem.new:not(:active) {
+	-webkit-transform: translate(4px, -4px);
+	        transform: translate(4px, -4px);
+}
+.gameitem.new:not(:active):before,
+	.gameitem.new:not(:active):after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+.gameitem.new:not(:active):before {
+	left: -4px;
+	top: 0;
+	bottom: -4px;
+	width: 0;
+	border-top: solid 4px transparent;
+	border-right: solid 4px rgb(0, 158, 176);
+}
+.gameitem.new:not(:active):after {
+	left: -4px;
+	bottom: -4px;
+	right: 0;
+	height: 0;
+	border-right: solid 4px transparent;
+	border-top: solid 4px rgb(0, 158, 176);
 }
