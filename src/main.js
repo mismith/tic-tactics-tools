@@ -112,6 +112,7 @@ let TicTacticsTools = React.createClass({
 	},
 
 	pickGame(gameId) {
+		if (!gameId) gameId = this.firebaseRefs.games.push().key();
 		this.setState({
 			gameRef: this.firebaseRefs.games.child(gameId),
 		});
@@ -126,7 +127,7 @@ let TicTacticsTools = React.createClass({
 					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 				</header>
 				<ul className="gameitems">
-					<li className="gameitem new" onClick={this.pickGame.bind(this, this.firebaseRefs.games.push().key())}>
+					<li className="gameitem new" onClick={this.pickGame.bind(this, undefined)}>
 						<figure>
 							<img src="plus.svg" height="50" />
 						</figure>

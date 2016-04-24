@@ -128,6 +128,7 @@ var TicTacticsTools = React.createClass({
 		this.firebase.unauth();
 	},
 	pickGame: function pickGame(gameId) {
+		if (!gameId) gameId = this.firebaseRefs.games.push().key();
 		this.setState({
 			gameRef: this.firebaseRefs.games.child(gameId)
 		});
@@ -161,7 +162,7 @@ var TicTacticsTools = React.createClass({
 					{ className: 'gameitems' },
 					React.createElement(
 						'li',
-						{ className: 'gameitem new', onClick: this.pickGame.bind(this, this.firebaseRefs.games.push().key()) },
+						{ className: 'gameitem new', onClick: this.pickGame.bind(this, undefined) },
 						React.createElement(
 							'figure',
 							null,
