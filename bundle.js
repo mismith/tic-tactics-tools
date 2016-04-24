@@ -14,6 +14,68 @@ function mapInOrder(obj, callback, context) {
 	});
 }
 
+var Swipeable = React.createClass({
+	displayName: 'Swipeable',
+	getInitialState: function getInitialState() {
+		return {
+			start: 0,
+			x: null,
+			y: null,
+			swiping: false
+		};
+	},
+	getDefaultProps: function getDefaultProps() {
+		return {
+			threshold: 10
+		};
+	},
+	componentDidMount: function componentDidMount() {
+		document.addEventListener('mousemove', this.handleMouseMove);
+		document.addEventListener('mouseup', this.handleMouseUp);
+	},
+	componentWillUnmount: function componentWillUnmount() {
+		document.removeEventListener('mousemove', this.handleMouseMove);
+		document.removeEventListener('mouseup', this.handleMouseUp);
+	},
+	handleMouseDown: function handleMouseDown(e) {
+		this.setState({
+			start: Date.now(),
+			x: e.clientX,
+			y: e.clientY,
+			swiping: false
+		});
+	},
+	handleMouseMove: function handleMouseMove(e) {
+		if (Math.max(Math.abs(e.clientY - this.state.y), Math.abs(e.clientX - this.state.x)) > this.props.threshold) {
+			this.setState({
+				swiping: true
+			});
+		}
+	},
+	handleMouseUp: function handleMouseUp(e) {
+		if (this.state.swiping) {
+			if (e.clientX - this.state.x < -this.props.threshold) {
+				this.props.onSwipeLeft && this.props.onSwipeLeft(e);
+			} else if (e.clientX - this.state.x > this.props.threshold) {
+				this.props.onSwipeRight && this.props.onSwipeRight(e);
+			} else if (e.clientY - this.state.y < -this.props.threshold) {
+				this.props.onSwipeUp && this.props.onSwipeUp(e);
+			} else if (e.clientY - this.state.y > this.props.threshold) {
+				this.props.onSwipeDown && this.props.onSwipeDown(e);
+			}
+		}
+
+		this.setState(this.getInitialState());
+	},
+	render: function render() {
+		return React.createElement(
+			'div',
+			_extends({ onMouseDown: this.handleMouseDown }, this.props),
+			this.props.children
+		);
+	}
+});
+
 var Defaults = {};
 Defaults.tiles = function () {
 	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
@@ -133,6 +195,13 @@ var TicTacticsTools = React.createClass({
 			gameRef: this.firebaseRefs.games.child(gameId)
 		});
 	},
+	deleteGame: function deleteGame(gameId) {
+		if (!gameId) return;
+
+		this.firebaseRefs.games.child(gameId).remove();
+
+		this.pickGame(); // go to new game
+	},
 	render: function render() {
 		var _this3 = this;
 
@@ -166,41 +235,92 @@ var TicTacticsTools = React.createClass({
 						React.createElement(
 							'figure',
 							null,
-							React.createElement('img', { src: 'plus.svg', height: '50' })
+							React.createElement('img', { src: 'icons/plus.svg', height: '50' })
 						),
 						React.createElement(
 							'div',
-							null,
-							'New'
+							{ className: 'flex-grow flex-row' },
+							React.createElement(
+								'div',
+								{ className: 'swipeable' },
+								'New'
+							)
 						)
 					),
 					this.state.games.sort(function (a, b) {
 						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
 					}).map(function (game) {
-						return React.createElement(
-							'li',
-							{ key: game['.key'], className: 'gameitem ' + (game['.key'] === _this3.state.gameRef.key() ? 'active' : ''), onClick: _this3.pickGame.bind(_this3, game['.key']) },
-							React.createElement(
-								'figure',
-								null,
-								React.createElement(MegaBoard, _extends({ className: 'mini' }, game))
-							),
-							React.createElement(
-								'div',
-								null,
-								React.createElement(
-									'div',
-									null,
-									game.opponent || 'Opponent'
-								),
-								React.createElement(
-									'time',
-									{ datetime: game.updated || game.created, title: game.updated || game.created },
-									moment(game.updated || game.created).fromNow()
-								)
-							)
-						);
+						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: game['.key'] === _this3.state.gameRef.key(), onClick: function onClick(e) {
+								return _this3.pickGame(game['.key']);
+							}, onDelete: function onDelete(e) {
+								return _this3.deleteGame(game['.key']);
+							} });
 					})
+				)
+			)
+		);
+	}
+});
+
+var GameItem = React.createClass({
+	displayName: 'GameItem',
+	getDefaultProps: function getDefaultProps() {
+		return {
+			game: {}
+		};
+	},
+	getInitialState: function getInitialState() {
+		return {
+			deleting: false
+		};
+	},
+	render: function render() {
+		var _this4 = this;
+
+		var _props = this.props;
+		var game = _props.game;
+		var isActive = _props.isActive;
+		var className = _props.className;
+
+		var props = _objectWithoutProperties(_props, ['game', 'isActive', 'className']);
+
+		return React.createElement(
+			'li',
+			_extends({ className: 'gameitem ' + (isActive ? 'active' : '') + ' ' + (this.state.deleting ? 'deleting' : '') + ' ' + className }, props),
+			React.createElement(
+				'figure',
+				null,
+				React.createElement(MegaBoard, _extends({ className: 'mini' }, game))
+			),
+			React.createElement(
+				'div',
+				{ className: 'flex-grow flex-row' },
+				React.createElement(
+					Swipeable,
+					{ className: 'swipeable', onSwipeLeft: function onSwipeLeft(e) {
+							return _this4.setState({ deleting: true });
+						}, onSwipeRight: function onSwipeRight(e) {
+							return _this4.setState({ deleting: false });
+						} },
+					React.createElement(
+						'div',
+						{ className: 'flex-grow flex-column flex-justify-center' },
+						React.createElement(
+							'span',
+							null,
+							game.opponent || 'Opponent'
+						),
+						React.createElement(
+							'time',
+							{ datetime: game.updated || game.created, title: game.updated || game.created },
+							moment(game.updated || game.created).fromNow()
+						)
+					),
+					React.createElement(
+						'button',
+						{ className: 'btn delete', onClick: this.props.onDelete },
+						'Delete'
+					)
 				)
 			)
 		);
@@ -271,12 +391,12 @@ var Game = React.createClass({
 		this.setState({ game: game });
 	},
 	render: function render() {
-		var _this4 = this;
+		var _this5 = this;
 
-		var _props = this.props;
-		var me = _props.me;
-		var className = _props.className;
-		var props = _objectWithoutProperties(_props, ['me', 'className']);
+		var _props2 = this.props;
+		var me = _props2.me;
+		var className = _props2.className;
+		var props = _objectWithoutProperties(_props2, ['me', 'className']);
 		var game = Defaults.game(this.state.game);
 
 		return React.createElement(
@@ -291,15 +411,15 @@ var Game = React.createClass({
 					me ? me.displayName : 'You'
 				),
 				React.createElement(Tile, { className: 'turn-indicator btn', player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red, onClick: function onClick(e) {
-						return _this4.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
+						return _this5.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
 					} }),
 				React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent name', onChange: function onChange(e) {
-						return _this4.setState({ game: _extends({}, game, { opponent: e.target.value }) });
+						return _this5.setState({ game: _extends({}, game, { opponent: e.target.value }) });
 					} }),
 				React.createElement(
 					'button',
 					{ className: 'btn mini green-faded', disabled: !game.opponent, onClick: this.handleSave },
-					React.createElement('img', { src: 'check.svg', height: '16' })
+					React.createElement('img', { src: 'icons/check.svg', height: '16' })
 				)
 			),
 			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game))
@@ -315,11 +435,11 @@ var MegaBoard = React.createClass({
 		};
 	},
 	render: function render() {
-		var _props2 = this.props;
-		var boards = _props2.boards;
-		var className = _props2.className;
+		var _props3 = this.props;
+		var boards = _props3.boards;
+		var className = _props3.className;
 
-		var props = _objectWithoutProperties(_props2, ['boards', 'className']);
+		var props = _objectWithoutProperties(_props3, ['boards', 'className']);
 
 		boards = Defaults.boards(boards);
 
@@ -375,15 +495,15 @@ var Board = React.createClass({
 		return className;
 	},
 	render: function render() {
-		var _props3 = this.props;
-		var i = _props3.i;
-		var tiles = _props3.tiles;
-		var canChooseAnyTile = _props3.canChooseAnyTile;
-		var previous = _props3.previous;
-		var blue = _props3.blue;
-		var red = _props3.red;
-		var onClick = _props3.onClick;
-		var props = _objectWithoutProperties(_props3, ['i', 'tiles', 'canChooseAnyTile', 'previous', 'blue', 'red', 'onClick']);
+		var _props4 = this.props;
+		var i = _props4.i;
+		var tiles = _props4.tiles;
+		var canChooseAnyTile = _props4.canChooseAnyTile;
+		var previous = _props4.previous;
+		var blue = _props4.blue;
+		var red = _props4.red;
+		var onClick = _props4.onClick;
+		var props = _objectWithoutProperties(_props4, ['i', 'tiles', 'canChooseAnyTile', 'previous', 'blue', 'red', 'onClick']);
 		var zIndex = 0;
 		tiles = Defaults.tiles(tiles);
 
@@ -418,19 +538,19 @@ var Tile = React.createClass({
 		};
 	},
 	render: function render() {
-		var _props4 = this.props;
-		var player = _props4.player;
-		var letter = _props4.letter;
-		var isPrevious = _props4.isPrevious;
-		var isBlocked = _props4.isBlocked;
-		var className = _props4.className;
+		var _props5 = this.props;
+		var player = _props5.player;
+		var letter = _props5.letter;
+		var isPrevious = _props5.isPrevious;
+		var isBlocked = _props5.isBlocked;
+		var className = _props5.className;
 
-		var props = _objectWithoutProperties(_props4, ['player', 'letter', 'isPrevious', 'isBlocked', 'className']);
+		var props = _objectWithoutProperties(_props5, ['player', 'letter', 'isPrevious', 'isBlocked', 'className']);
 
 		return React.createElement(
 			'button',
 			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') + ' ' + className, onContextMenu: this.props.onClick }, props),
-			letter && React.createElement('img', { src: letter + '.svg' })
+			letter && React.createElement('img', { src: 'icons/' + letter + '.svg' })
 		);
 	}
 });
