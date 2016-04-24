@@ -2,6 +2,69 @@ function mapInOrder(obj, callback, context) {
 	return Object.keys(obj).sort((a,b) => a < b ? -1 : 1).map(k => callback.call(context || this, obj[k], k));
 }
 
+let Swipeable = React.createClass({
+	getInitialState() {
+		return {
+			start: 0,
+			x: null,
+			y: null,
+			swiping: false,
+		};
+	},
+	getDefaultProps() {
+		return {
+			threshold: 10,
+		};
+	},
+
+	componentDidMount() {
+		document.addEventListener('mousemove', this.handleMouseMove);
+		document.addEventListener('mouseup', this.handleMouseUp);
+	},
+	componentWillUnmount() {
+		document.removeEventListener('mousemove', this.handleMouseMove);
+		document.removeEventListener('mouseup', this.handleMouseUp);
+	},
+
+	handleMouseDown(e) {
+		this.setState({
+			start: Date.now(),
+			x: e.clientX,
+			y: e.clientY,
+			swiping: false,
+		});
+	},
+	handleMouseMove(e) {
+		if (Math.max(Math.abs(e.clientY - this.state.y), Math.abs(e.clientX - this.state.x)) > this.props.threshold) {
+			this.setState({
+				swiping: true,
+			});
+		}
+	},
+	handleMouseUp(e) {
+		if (this.state.swiping) {
+			if (e.clientX - this.state.x < -this.props.threshold) {
+				this.props.onSwipeLeft && this.props.onSwipeLeft(e);
+			} else if (e.clientX - this.state.x > this.props.threshold) {
+				this.props.onSwipeRight && this.props.onSwipeRight(e);
+			} else if (e.clientY - this.state.y < -this.props.threshold) {
+				this.props.onSwipeUp && this.props.onSwipeUp(e);
+			} else if (e.clientY - this.state.y > this.props.threshold) {
+				this.props.onSwipeDown && this.props.onSwipeDown(e);
+			}
+		}
+
+		this.setState(this.getInitialState());
+	},
+
+	render() {
+		return <div onMouseDown={this.handleMouseDown} {...this.props}>
+			{this.props.children}
+		</div>
+	},
+});
+
+
 let Defaults = {};
 Defaults.tiles = function(overrides = {}){
 	return _.defaultsDeep(overrides, {
@@ -117,6 +180,13 @@ let TicTacticsTools = React.createClass({
 			gameRef: this.firebaseRefs.games.child(gameId),
 		});
 	},
+	deleteGame(gameId) {
+		if (!gameId) return;
+
+		this.firebaseRefs.games.child(gameId).remove();
+
+		this.pickGame(); // go to new game
+	},
 
 	render() {
 		return <div className="flex-row" style={{width: '100%'}}>
@@ -129,28 +199,52 @@ let TicTacticsTools = React.createClass({
 				<ul className="gameitems">
 					<li className="gameitem new" onClick={this.pickGame.bind(this, undefined)}>
 						<figure>
-							<img src="plus.svg" height="50" />
+							<img src="icons/plus.svg" height="50" />
 						</figure>
-						<div>New</div>
-					</li>
-				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
-					<li key={game['.key']} className={`gameitem ${game['.key'] === this.state.gameRef.key() ? 'active' : ''}`} onClick={this.pickGame.bind(this, game['.key'])}>
-						<figure>
-							<MegaBoard className="mini" {...game} />
-						</figure>
-						<div>
-							<div>
-								{game.opponent || 'Opponent'}
-							</div>
-							<time datetime={game.updated || game.created} title={game.updated || game.created}>
-								{moment(game.updated || game.created).fromNow()}
-							</time>
+						<div className="flex-grow flex-row">
+							<div className="swipeable">New</div>
 						</div>
 					</li>
+				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
+					<GameItem key={game['.key']} game={game} isActive={game['.key'] === this.state.gameRef.key()} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
 				)}
 				</ul>
 			</aside>
 		</div>
+	},
+});
+
+let GameItem = React.createClass({
+	getDefaultProps() {
+		return {
+			game: {},
+		};
+	},
+	getInitialState() {
+		return {
+			deleting: false,
+		};
+	},
+
+	render() {
+		let {game, isActive, className, ...props} = this.props;
+
+		return <li className={`gameitem ${isActive ? 'active' : ''} ${this.state.deleting ? 'deleting' : ''} ${className}`} {...props}>
+			<figure>
+				<MegaBoard className="mini" {...game} />
+			</figure>
+			<div className="flex-grow flex-row">
+				<Swipeable className="swipeable" onSwipeLeft={e => this.setState({deleting: true})} onSwipeRight={e => this.setState({deleting: false})}>
+					<div className="flex-grow flex-column flex-justify-center">
+						<span>{game.opponent || 'Opponent'}</span>
+						<time datetime={game.updated || game.created} title={game.updated || game.created}>
+							{moment(game.updated || game.created).fromNow()}
+						</time>
+					</div>
+					<button className="btn delete" onClick={this.props.onDelete}>Delete</button>
+				</Swipeable>
+			</div>
+		</li>
 	},
 });
 
@@ -231,7 +325,7 @@ let Game = React.createClass({
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
 				<button className="btn mini green-faded" disabled={!game.opponent} onClick={this.handleSave}>
-					<img src="check.svg" height="16" />
+					<img src="icons/check.svg" height="16" />
 				</button>
 			</header>
 			<MegaBoard onClick={this.handleClick} {...game} />
@@ -345,7 +439,7 @@ let Tile = React.createClass({
 
 		return <button className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''} ${className}`} onContextMenu={this.props.onClick} {...props}>
 		{letter &&
-			<img src={`${letter}.svg`} />
+			<img src={`icons/${letter}.svg`} />
 		}
 		</button>
 	},
