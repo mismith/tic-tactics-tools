@@ -221,8 +221,12 @@ var TicTacticsTools = React.createClass({
 
 		return React.createElement(
 			'div',
-			{ className: 'flex-row', style: { width: '100%' } },
-			React.createElement(Game, { id: 'game', gameRef: this.state.gameRef, me: this.state.me }),
+			{ id: 'container' },
+			React.createElement(
+				'div',
+				{ id: 'game' },
+				React.createElement(Game, { gameRef: this.state.gameRef, me: this.state.me })
+			),
 			React.createElement(
 				'aside',
 				{ id: 'sidebar' },
@@ -419,23 +423,31 @@ var Game = React.createClass({
 			{ className: 'gameview ' + className },
 			React.createElement(
 				'header',
-				{ className: 'flex-row flex-align-center' },
-				React.createElement('span', { className: 'btn mini avatar blue', style: { backgroundImage: 'url(' + (me ? me.profileImageURL : 'avatar.svg') + ')' } }),
+				null,
 				React.createElement(
-					'output',
+					'div',
 					null,
-					me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'
+					React.createElement('span', { className: 'btn mini avatar blue', style: { backgroundImage: 'url(' + (me ? me.profileImageURL : 'avatar.svg') + ')' } }),
+					React.createElement(
+						'output',
+						null,
+						me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'
+					)
 				),
 				React.createElement(Tile, { className: 'turn-indicator btn', player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red, onClick: function onClick(e) {
 						return _this5.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
 					} }),
-				React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent name', onChange: function onChange(e) {
-						return _this5.setState({ game: _extends({}, game, { opponent: e.target.value }) });
-					} }),
 				React.createElement(
-					'button',
-					{ className: 'btn mini green-faded', disabled: !game.opponent, onClick: this.handleSave },
-					React.createElement('img', { src: 'icons/check.svg', height: '16' })
+					'div',
+					null,
+					React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent', onChange: function onChange(e) {
+							return _this5.setState({ game: _extends({}, game, { opponent: e.target.value }) });
+						} }),
+					React.createElement(
+						'button',
+						{ className: 'btn mini green-faded', disabled: !game.opponent, onClick: this.handleSave },
+						React.createElement('img', { src: 'icons/check.svg', height: '16' })
+					)
 				)
 			),
 			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game))
