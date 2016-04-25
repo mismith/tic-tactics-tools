@@ -15,6 +15,9 @@
 
 	--raise: 16px;
 	--spacing: 4px;
+
+	--tile-raise: var(--raise);
+	--tile-spacing: var(--spacing);
 }
 @define-mixin raise $raise: 5px, $color: var(--darker) {
 	transform: translate($raise, -$raise);
@@ -101,8 +104,22 @@ figure {
 	width: 100%;
 	height: 100%;
 }
-#sidebar {
+#container {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+#game {
+	display: flex;
+	justify-content: space-around;
 	flex-grow: 1;
+}
+#sidebar {
+	width: 400px;
+	flex-shrink: 0;
+	background-color: var(--light);
 	padding: var(--raise);
 }
 
@@ -130,6 +147,9 @@ figure {
 	outline: none;
 	user-select: none;
 
+	& img {
+		max-width: 66.666%;
+	}
 	&.blocked:not(.blue):not(.red) {
 		background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
 		pointer-events: none;
@@ -158,9 +178,9 @@ figure {
 	height: 100%;
 
 	& .tile {
-		width: calc(33.333% - 2 * var(--spacing));
-		height: calc(33.333% - 2 * var(--spacing));
-		margin: var(--spacing);
+		width: calc(33.333% - 2 * var(--tile-spacing));
+		height: calc(33.333% - 2 * var(--tile-spacing));
+		margin: var(--tile-spacing);
 	}
 	&:nth-child(2n) {
 		& .tile {
@@ -168,7 +188,7 @@ figure {
 		}
 	}
 	&.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
-		@mixin raise var(--raise);
+		@mixin raise var(--tile-raise);
 		cursor: pointer;
 	}
 	&.blue {
@@ -202,17 +222,19 @@ figure {
 	flex-wrap: wrap;
 	width: 800px;
 	height: 800px;
-	margin: -calc(2 * var(--spacing));
+	max-width: 100vmin;
+	max-height: 100vmin;
+	padding: calc(var(--tile-raise) - 2 * var(--tile-spacing));
 
 	& .board {
-		width: calc(33.333% - 2 * var(--spacing));
-		height: calc(33.333% - 2 * var(--spacing));
-		margin: var(--spacing);
+		width: calc(33.333% - 2 * var(--tile-spacing));
+		height: calc(33.333% - 2 * var(--tile-spacing));
+		margin: var(--tile-spacing);
 	}
 	&.mini {
 		width: 100px;
 		height: 100px;
-		margin: 0;
+		padding: 0;
 
 		& .board {
 			width: 33.333%;
@@ -239,65 +261,32 @@ figure {
 	}
 }
 
-.btn {
-	appearance: none;
-	flex-shrink: 0;
-	width: 100px;
-	height: 100px;
-	background-color: var(--darkest);
-	background-clip: border-box;
-	color: white;
-	padding: 0;
-	border: solid 10px rgba(255,255,255,.4);
-	border-radius: 50%;
-	margin: 0;
-	outline: 0;
-
-	&.mini {
-		width: 50px;
-		height: 50px;
-		border-width: 5px;
-	}
-	&:disabled {
-		opacity: .5;
-		cursor: no-drop;
-	}
-	&:not(:disabled) {
-		&.green-faded {
-			background-color: var(--green-faded);
-		}
-		&:active {
-			border-width: 5px;
-		}
-	}
-}
-button {
-	cursor: pointer;
-}
-.avatar {
-	background-position: center center;
-	background-size: cover;
-	border-color: white;
-
-	&.blue {
-		border-color: var(--blue);
-	}
-}
-
 .gameview {
-	padding: var(--raise);
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	max-width: 800px;
 
 	& > header {
-		margin: var(--raise) 0;
+		display: flex;
+		align-items: center;
+		margin: var(--raise) var(--raise) 0;
 
-		& input,
-		& output {
-			width: 50%;
+		& > div {
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			flex-grow: 1;
-			font: inherit;
-			font-size: 1.5em;
-			text-align: center;
-			margin: 0 var(--raise);
+			flex-basis: 50%;
+
+			& input,
+			& output {
+				flex-grow: 1;
+				font: inherit;
+				font-size: 1.5em;
+				text-align: center;
+			}
 		}
 	}
 }
@@ -308,7 +297,6 @@ button {
 }
 .gameitem {
 	display: flex;
-	min-width: 320px;
 	margin-bottom: calc(2 * var(--spacing));
 	cursor: pointer;
 
@@ -417,5 +405,50 @@ button {
 		&:not(:active) {
 			@mixin raise var(--spacing), color(var(--blue) blackness(+15%));
 		}
+	}
+}
+
+.btn {
+	appearance: none;
+	flex-shrink: 0;
+	width: 100px;
+	height: 100px;
+	background-color: var(--darkest);
+	background-clip: border-box;
+	color: white;
+	padding: 0;
+	border: solid 10px rgba(255,255,255,.4);
+	border-radius: 50%;
+	margin: 0;
+	outline: 0;
+
+	&.mini {
+		width: 50px;
+		height: 50px;
+		border-width: 5px;
+	}
+	&:disabled {
+		opacity: .5;
+		cursor: no-drop;
+	}
+	&:not(:disabled) {
+		&.green-faded {
+			background-color: var(--green-faded);
+		}
+		&:active {
+			border-width: 5px;
+		}
+	}
+}
+button {
+	cursor: pointer;
+}
+.avatar {
+	background-position: center center;
+	background-size: cover;
+	border-color: white;
+
+	&.blue {
+		border-color: var(--blue);
 	}
 }

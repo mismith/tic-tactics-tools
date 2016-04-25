@@ -102,11 +102,40 @@ figure {
 	width: 100%;
 	height: 100%;
 }
-#sidebar {
+#container {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	    -ms-flex-wrap: wrap;
+	        flex-wrap: wrap;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	    -ms-flex-pack: center;
+	        justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+#game {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-justify-content: space-around;
+	    -ms-flex-pack: distribute;
+	        justify-content: space-around;
 	-webkit-box-flex: 1;
 	-webkit-flex-grow: 1;
 	    -ms-flex-positive: 1;
 	        flex-grow: 1;
+}
+#sidebar {
+	width: 400px;
+	-webkit-flex-shrink: 0;
+	    -ms-flex-negative: 0;
+	        flex-shrink: 0;
+	background-color: #cecece;
 	padding: 16px;
 }
 
@@ -156,6 +185,9 @@ figure {
 	   -moz-user-select: none;
 	    -ms-user-select: none;
 	        user-select: none
+}
+.tile img {
+	max-width: 66.666%;
 }
 .tile.blocked:not(.blue):not(.red) {
 	background-image: -webkit-repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
@@ -255,7 +287,9 @@ figure {
 	        flex-wrap: wrap;
 	width: 800px;
 	height: 800px;
-	margin: -8px
+	max-width: 100vmin;
+	max-height: 100vmin;
+	padding: 8px
 }
 .megaboard .board {
 	width: calc(33.333% - 2 * 4px);
@@ -265,7 +299,7 @@ figure {
 .megaboard.mini {
 	width: 100px;
 	height: 100px;
-	margin: 0;
+	padding: 0;
 }
 .megaboard.mini .board {
 	width: 33.333%;
@@ -290,68 +324,57 @@ figure {
 	display: none;
 }
 
-.btn {
-	-webkit-appearance: none;
-	   -moz-appearance: none;
-	        appearance: none;
-	-webkit-flex-shrink: 0;
-	    -ms-flex-negative: 0;
-	        flex-shrink: 0;
-	width: 100px;
-	height: 100px;
-	background-color: #4d4d4d;
-	background-clip: border-box;
-	color: white;
-	padding: 0;
-	border: solid 10px rgba(255,255,255,.4);
-	border-radius: 50%;
-	margin: 0;
-	outline: 0
-}
-
-.btn.mini {
-	width: 50px;
-	height: 50px;
-	border-width: 5px;
-}
-
-.btn:disabled {
-	opacity: .5;
-	cursor: no-drop;
-}
-
-.btn:not(:disabled) {}
-
-.btn:not(:disabled).green-faded {
-	background-color: #76D380;
-}
-
-.btn:not(:disabled):active {
-	border-width: 5px;
-}
-button {
-	cursor: pointer;
-}
-.avatar {
-	background-position: center center;
-	background-size: cover;
-	border-color: white
-}
-.avatar.blue {
-	border-color: #00c2d7;
-}
-
 .gameview {
-	padding: 16px
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: vertical;
+	-webkit-box-direction: normal;
+	-webkit-flex-direction: column;
+	    -ms-flex-direction: column;
+	        flex-direction: column;
+	width: 100%;
+	height: 100%;
+	max-width: 800px
 }
 
 .gameview > header {
-	margin: 16px 0;
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	    -ms-flex-align: center;
+	        align-items: center;
+	margin: 16px 16px 0;
 }
 
-.gameview > header input,
-		.gameview > header output {
-	width: 50%;
+.gameview > header > div {
+	display: -webkit-box;
+	display: -webkit-flex;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-webkit-align-items: center;
+	    -ms-flex-align: center;
+	        align-items: center;
+	-webkit-box-pack: center;
+	-webkit-justify-content: center;
+	    -ms-flex-pack: center;
+	        justify-content: center;
+	-webkit-box-flex: 1;
+	-webkit-flex-grow: 1;
+	    -ms-flex-positive: 1;
+	        flex-grow: 1;
+	-webkit-flex-basis: 50%;
+	    -ms-flex-preferred-size: 50%;
+	        flex-basis: 50%;
+}
+
+.gameview > header > div input,
+			.gameview > header > div output {
 	-webkit-box-flex: 1;
 	-webkit-flex-grow: 1;
 	    -ms-flex-positive: 1;
@@ -359,7 +382,6 @@ button {
 	font: inherit;
 	font-size: 1.5em;
 	text-align: center;
-	margin: 0 16px;
 }
 .gameitems {
 	display: -webkit-box;
@@ -378,7 +400,6 @@ button {
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	min-width: 320px;
 	margin-bottom: 8px;
 	cursor: pointer
 }
@@ -553,4 +574,55 @@ button {
 	height: 0;
 	border-right: solid 4px transparent;
 	border-top: solid 4px rgb(0, 158, 176);
+}
+
+.btn {
+	-webkit-appearance: none;
+	   -moz-appearance: none;
+	        appearance: none;
+	-webkit-flex-shrink: 0;
+	    -ms-flex-negative: 0;
+	        flex-shrink: 0;
+	width: 100px;
+	height: 100px;
+	background-color: #4d4d4d;
+	background-clip: border-box;
+	color: white;
+	padding: 0;
+	border: solid 10px rgba(255,255,255,.4);
+	border-radius: 50%;
+	margin: 0;
+	outline: 0
+}
+
+.btn.mini {
+	width: 50px;
+	height: 50px;
+	border-width: 5px;
+}
+
+.btn:disabled {
+	opacity: .5;
+	cursor: no-drop;
+}
+
+.btn:not(:disabled) {}
+
+.btn:not(:disabled).green-faded {
+	background-color: #76D380;
+}
+
+.btn:not(:disabled):active {
+	border-width: 5px;
+}
+button {
+	cursor: pointer;
+}
+.avatar {
+	background-position: center center;
+	background-size: cover;
+	border-color: white
+}
+.avatar.blue {
+	border-color: #00c2d7;
 }

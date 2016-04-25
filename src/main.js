@@ -203,8 +203,10 @@ let TicTacticsTools = React.createClass({
 	},
 
 	render() {
-		return <div className="flex-row" style={{width: '100%'}}>
-			<Game id="game" gameRef={this.state.gameRef} me={this.state.me} />
+		return <div id="container">
+			<div id="game">
+				<Game gameRef={this.state.gameRef} me={this.state.me} />
+			</div>
 			<aside id="sidebar">
 				<header>
 					<button hidden={this.state.me} onClick={this.login}>Login with Facebook</button>
@@ -335,14 +337,18 @@ let Game = React.createClass({
 			game = Defaults.game(this.state.game);
 
 		return <div className={`gameview ${className}`}>
-			<header className="flex-row flex-align-center">
-				<span className="btn mini avatar blue" style={{backgroundImage: `url(${me ? me.profileImageURL : 'avatar.svg'})`}}></span>
-				<output>{me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'}</output>
+			<header>
+				<div>
+					<span className="btn mini avatar blue" style={{backgroundImage: `url(${me ? me.profileImageURL : 'avatar.svg'})`}}></span>
+					<output>{me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'}</output>
+				</div>
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
-				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
-				<button className="btn mini green-faded" disabled={!game.opponent} onClick={this.handleSave}>
-					<img src="icons/check.svg" height="16" />
-				</button>
+				<div>
+					<input value={game.opponent || ''} placeholder="Opponent" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
+					<button className="btn mini green-faded" disabled={!game.opponent} onClick={this.handleSave}>
+						<img src="icons/check.svg" height="16" />
+					</button>
+				</div>
 			</header>
 			<MegaBoard onClick={this.handleClick} {...game} />
 		</div>
