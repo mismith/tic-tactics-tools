@@ -459,11 +459,11 @@ let Tile = React.createClass({
 	render() {
 		let {player, letter, isPrevious, isBlocked, className, ...props} = this.props;
 
-		return <button className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''} ${className}`} onContextMenu={this.props.onClick} {...props}>
+		return <span className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''} ${className}`} onContextMenu={this.props.onClick} {...props}>
 		{letter &&
 			<img src={`icons/${letter}.svg`} />
 		}
-		</button>
+		</span>
 	},
 });
 

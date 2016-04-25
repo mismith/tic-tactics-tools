@@ -576,7 +576,7 @@ var Tile = React.createClass({
 		var props = _objectWithoutProperties(_props5, ['player', 'letter', 'isPrevious', 'isBlocked', 'className']);
 
 		return React.createElement(
-			'button',
+			'span',
 			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') + ' ' + className, onContextMenu: this.props.onClick }, props),
 			letter && React.createElement('img', { src: 'icons/' + letter + '.svg' })
 		);
