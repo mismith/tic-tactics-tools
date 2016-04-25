@@ -278,6 +278,10 @@ button {
 	background-position: center center;
 	background-size: cover;
 	border-color: white;
+
+	&.blue {
+		border-color: var(--blue);
+	}
 }
 
 .gameview {
@@ -304,8 +308,9 @@ button {
 }
 .gameitem {
 	display: flex;
-	cursor: pointer;
+	min-width: 320px;
 	margin-bottom: calc(2 * var(--spacing));
+	cursor: pointer;
 
 	& > figure {
 		position: relative;

@@ -336,7 +336,7 @@ let Game = React.createClass({
 
 		return <div className={`gameview ${className}`}>
 			<header className="flex-row flex-align-center">
-				<span className="btn mini avatar" style={{backgroundImage: `url(${me ? me.profileImageURL : ''})`}}></span>
+				<span className="btn mini avatar blue" style={{backgroundImage: `url(${me ? me.profileImageURL : ''})`}}></span>
 				<output>{me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'}</output>
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />

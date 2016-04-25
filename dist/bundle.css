@@ -335,7 +335,10 @@ button {
 .avatar {
 	background-position: center center;
 	background-size: cover;
-	border-color: white;
+	border-color: white
+}
+.avatar.blue {
+	border-color: #00c2d7;
 }
 
 .gameview {
@@ -375,8 +378,9 @@ button {
 	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	cursor: pointer;
-	margin-bottom: 8px
+	min-width: 320px;
+	margin-bottom: 8px;
+	cursor: pointer
 }
 .gameitem > figure {
 	position: relative;
