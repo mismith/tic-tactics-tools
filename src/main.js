@@ -345,7 +345,7 @@ let Game = React.createClass({
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<div>
 					<input value={game.opponent || ''} placeholder="Opponent" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
-					<button className="btn mini green-faded" disabled={!game.opponent} onClick={this.handleSave}>
+					<button className="btn mini green-faded" disabled={!game.opponent || !me} onClick={this.handleSave}>
 						<img src="icons/check.svg" height="16" />
 					</button>
 				</div>
