@@ -173,11 +173,15 @@ var TicTacticsTools = React.createClass({
 					});
 
 					// games
-					var gamesRef = _this2.firebase.child('users:games').child(authData.uid),
-					    gameRef = gamesRef.child(gamesRef.push().key());
+					var gamesRef = _this2.firebase.child('users:games').child(authData.uid);
 					_this2.bindAsArray(gamesRef, 'games');
 
-					_this2.setState({ gameRef: gameRef });
+					// load most recent game (or a new one, if none found)
+					meRef.once('value').then(function (snap) {
+						_this2.setState({
+							gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key())
+						});
+					});
 				})();
 			} else {
 				// @TODO: clean up all firebase stuff
@@ -194,9 +198,16 @@ var TicTacticsTools = React.createClass({
 	},
 	pickGame: function pickGame(gameId) {
 		if (!gameId) gameId = this.firebaseRefs.games.push().key();
+
 		this.setState({
 			gameRef: this.firebaseRefs.games.child(gameId)
 		});
+
+		if (this.firebaseRefs.me) {
+			this.firebaseRefs.me.update({
+				gameId: gameId
+			});
+		}
 	},
 	deleteGame: function deleteGame(gameId) {
 		if (!gameId) return;
