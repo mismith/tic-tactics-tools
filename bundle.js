@@ -420,7 +420,7 @@ var Game = React.createClass({
 			React.createElement(
 				'header',
 				{ className: 'flex-row flex-align-center' },
-				React.createElement('span', { className: 'btn mini avatar', style: { backgroundImage: 'url(' + (me ? me.profileImageURL : '') + ')' } }),
+				React.createElement('span', { className: 'btn mini avatar blue', style: { backgroundImage: 'url(' + (me ? me.profileImageURL : '') + ')' } }),
 				React.createElement(
 					'output',
 					null,
