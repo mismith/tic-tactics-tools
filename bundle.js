@@ -130,6 +130,7 @@ Defaults.game = function () {
 
 	return _.defaultsDeep(overrides, {
 		boards: Defaults.boards(),
+		turns: [],
 		canChooseAnyTile: true,
 		previous: 'Ee',
 		turn: 'blue',
@@ -387,6 +388,7 @@ var Game = React.createClass({
 					}
 			}
 			game.boards[i].tiles[j] = game.turn;
+			game.turns.push(i + j);
 			game.previous = i + j;
 			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
