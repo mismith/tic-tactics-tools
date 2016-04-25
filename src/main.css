@@ -252,7 +252,6 @@ figure {
 	border-radius: 50%;
 	margin: 0;
 	outline: 0;
-	cursor: pointer;
 
 	&.mini {
 		width: 50px;
@@ -272,6 +271,14 @@ figure {
 		}
 	}
 }
+button {
+	cursor: pointer;
+}
+.avatar {
+	background-position: center center;
+	background-size: cover;
+	border-color: white;
+}
 
 .gameview {
 	padding: var(--raise);
@@ -281,7 +288,7 @@ figure {
 
 		& input,
 		& output {
-			flex-basis: 50%;
+			width: 50%;
 			flex-grow: 1;
 			font: inherit;
 			font-size: 1.5em;
@@ -321,6 +328,8 @@ figure {
 
 		& .delete {
 			display: flex;
+			align-items: center;
+			justify-content: center;
 			position: absolute;
 			top: 0;
 			right: 0;

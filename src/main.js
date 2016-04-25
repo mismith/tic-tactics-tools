@@ -162,7 +162,8 @@ let TicTacticsTools = React.createClass({
 
 				this.setState({gameRef});
 			} else {
-				this.setState({me: authData});
+				// @TODO: clean up all firebase stuff
+				this.setState(this.getInitialState());
 			}
 		});
 	},
@@ -172,6 +173,7 @@ let TicTacticsTools = React.createClass({
 	},
 	logout() {
 		this.firebase.unauth();
+		location.reload(); // @HACK
 	},
 
 	pickGame(gameId) {
@@ -206,7 +208,7 @@ let TicTacticsTools = React.createClass({
 						</div>
 					</li>
 				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
-					<GameItem key={game['.key']} game={game} isActive={game['.key'] === this.state.gameRef.key()} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
+					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
 				)}
 				</ul>
 			</aside>
@@ -267,7 +269,7 @@ let Game = React.createClass({
 	componentWillReceiveProps(nextProps) {
 		if (this.props.gameRef !== nextProps.gameRef) {
 			if (this.firebaseRefs.game) this.unbind('game');
-			this.bindAsObject(nextProps.gameRef, 'game');
+			if (nextProps.gameRef) this.bindAsObject(nextProps.gameRef, 'game');
 		}
 	},
 
@@ -321,7 +323,8 @@ let Game = React.createClass({
 
 		return <div className={`gameview ${className}`}>
 			<header className="flex-row flex-align-center">
-				<output>{me ? me.displayName : 'You'}</output>
+				<span className="btn mini avatar" style={{backgroundImage: `url(${me ? me.profileImageURL : ''})`}}></span>
+				<output>{me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'}</output>
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<input value={game.opponent || ''} placeholder="Opponent name" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
 				<button className="btn mini green-faded" disabled={!game.opponent} onClick={this.handleSave}>
