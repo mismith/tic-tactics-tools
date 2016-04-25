@@ -445,7 +445,7 @@ var Game = React.createClass({
 						} }),
 					React.createElement(
 						'button',
-						{ className: 'btn mini green-faded', disabled: !game.opponent, onClick: this.handleSave },
+						{ className: 'btn mini green-faded', disabled: !game.opponent || !me, onClick: this.handleSave },
 						React.createElement('img', { src: 'icons/check.svg', height: '16' })
 					)
 				)
