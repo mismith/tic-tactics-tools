@@ -179,7 +179,8 @@ var TicTacticsTools = React.createClass({
 					_this2.setState({ gameRef: gameRef });
 				})();
 			} else {
-				_this2.setState({ me: authData });
+				// @TODO: clean up all firebase stuff
+				_this2.setState(_this2.getInitialState());
 			}
 		});
 	},
@@ -188,6 +189,7 @@ var TicTacticsTools = React.createClass({
 	},
 	logout: function logout() {
 		this.firebase.unauth();
+		location.reload(); // @HACK
 	},
 	pickGame: function pickGame(gameId) {
 		if (!gameId) gameId = this.firebaseRefs.games.push().key();
@@ -250,7 +252,7 @@ var TicTacticsTools = React.createClass({
 					this.state.games.sort(function (a, b) {
 						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
 					}).map(function (game) {
-						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: game['.key'] === _this3.state.gameRef.key(), onClick: function onClick(e) {
+						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this3.state.gameRef && _this3.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
 								return _this3.pickGame(game['.key']);
 							}, onDelete: function onDelete(e) {
 								return _this3.deleteGame(game['.key']);
@@ -344,7 +346,7 @@ var Game = React.createClass({
 	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
 		if (this.props.gameRef !== nextProps.gameRef) {
 			if (this.firebaseRefs.game) this.unbind('game');
-			this.bindAsObject(nextProps.gameRef, 'game');
+			if (nextProps.gameRef) this.bindAsObject(nextProps.gameRef, 'game');
 		}
 	},
 	handleSave: function handleSave() {
@@ -405,10 +407,11 @@ var Game = React.createClass({
 			React.createElement(
 				'header',
 				{ className: 'flex-row flex-align-center' },
+				React.createElement('span', { className: 'btn mini avatar', style: { backgroundImage: 'url(' + (me ? me.profileImageURL : '') + ')' } }),
 				React.createElement(
 					'output',
 					null,
-					me ? me.displayName : 'You'
+					me ? me.displayName.replace(/([A-Z])[a-z]*?$/, '$1.') : 'You'
 				),
 				React.createElement(Tile, { className: 'turn-indicator btn', player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red, onClick: function onClick(e) {
 						return _this5.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
