@@ -204,7 +204,9 @@ var TicTacticsTools = React.createClass({
 
 		this.firebase.authWithOAuthPopup('facebook', function (err) {
 			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
-				_this3.firebase.authWithOAuthRedirect('facebook');
+				_this3.firebase.authWithOAuthRedirect('facebook', function (err) {
+					if (err) alert(err);
+				});
 			}
 		});
 	},
