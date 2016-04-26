@@ -226,15 +226,27 @@ let TicTacticsTools = React.createClass({
 			<aside id="sidebar">
 				<header>
 					<button hidden={this.state.me} onClick={this.login}>Login with Facebook</button>
-					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 				</header>
 				<ul className="gameitems">
+					<li className="gameitem new">
+						<div className="flex-row flex-grow">
+							<figure>
+								<img src="icons/plus.svg" />
+							</figure>
+							<div className="flex-grow flex-row">
+								<div className="swipeable">Screenshot</div>
+							</div>
+							<ImageScanner onImageScanned={gameData => this.createGame(gameData)} />
+						</div>
+					</li>
 					<li className="gameitem new" onClick={this.pickGame.bind(this, null, null)}>
-						<figure>
-							<img src="icons/plus.svg" />
-						</figure>
-						<div className="flex-grow flex-row">
-							<div className="swipeable">New</div>
+						<div className="flex-row flex-grow">
+							<figure>
+								<img src="icons/plus.svg" />
+							</figure>
+							<div className="flex-grow flex-row">
+								<div className="swipeable">New</div>
+							</div>
 						</div>
 					</li>
 				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
@@ -242,7 +254,7 @@ let TicTacticsTools = React.createClass({
 				)}
 				</ul>
 				<footer>
-					<ImageScanner onImageScanned={gameData => this.createGame(gameData)} />
+					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 				</footer>
 			</aside>
 		</div>
@@ -500,85 +512,91 @@ let ImageScanner = React.createClass({
 		};
 	},
 	scanImage(img) {
-		var c   = document.createElement('canvas'),
-			ctx = c.getContext('2d');
-		c.width = img.width;
-		c.height = img.height;
+		try {
+			if (!img.width || !img.height) throw new Error('Invalid image');
 
-		ctx.drawImage(img, 0, 0);
+			var c   = document.createElement('canvas'),
+				ctx = c.getContext('2d');
+			c.width = img.width;
+			c.height = img.height;
 
-		let getPixel = {
-			x: (i, j) => ctx.getImageData(74 + j*74 + (j >= 6 ? 11 : (j >= 3 ? 5 : 0)), 436 + i*74 + (i >= 6 ? 11 : (i >= 3 ? 5 : 0)), 1, 1).data,
-			o: (i, j) => ctx.getImageData(56 + j*74 + (j >= 6 ? 11 : (j >= 3 ? 5 : 0)), 436 + i*74 + (i >= 6 ? 11 : (i >= 3 ? 5 : 0)), 1, 1).data,
-		};
+			ctx.drawImage(img, 0, 0);
 
-		// scan pixel grid
-		let pixels = {};
-		for (var i = 0; i < 9; i++) {
-			pixels[i] = {};
-			for (var j = 0; j < 9; j++) {
-				var x = getPixel.x(i, j),
-					o = getPixel.o(i, j);
-				if (x.every(item => item === 255)) {
-					// claimed X
-					pixels[i][j] = {letter: 'x', color: o};
-				} else if (o.every(item => item === 255)) {
-					// claimed O
-					pixels[i][j] = {letter: 'o', color: x};
-				} else {
-					// gray tile / unclaimed
-					pixels[i][j] = {letter: x[0] === x[1] && x[1] === x[2] ? false : null, color: null};
+			let getPixel = {
+				x: (i, j) => ctx.getImageData(74 + j*74 + (j >= 6 ? 11 : (j >= 3 ? 5 : 0)), 436 + i*74 + (i >= 6 ? 11 : (i >= 3 ? 5 : 0)), 1, 1).data || [],
+				o: (i, j) => ctx.getImageData(56 + j*74 + (j >= 6 ? 11 : (j >= 3 ? 5 : 0)), 436 + i*74 + (i >= 6 ? 11 : (i >= 3 ? 5 : 0)), 1, 1).data || [],
+			};
+
+			// scan pixel grid
+			let pixels = {};
+			for (var i = 0; i < 9; i++) {
+				pixels[i] = {};
+				for (var j = 0; j < 9; j++) {
+					var x = getPixel.x(i, j),
+						o = getPixel.o(i, j);
+					if (x[0] === x[1] && x[1] === x[2] && x[2] === x[3]) {
+						// claimed X
+						pixels[i][j] = {letter: 'x', color: o};
+					} else if (o[0] === o[1] && o[1] === o[2] && o[2] === o[3]) {
+						// claimed O
+						pixels[i][j] = {letter: 'o', color: x};
+					} else {
+						// gray tile / unclaimed
+						pixels[i][j] = {letter: x[0] === x[1] && x[1] === x[2] ? false : null, color: null};
+					}
 				}
 			}
-		}
 
-		// transpose into board structure and confirm team colors
-		let boards = Defaults.boards(),
-			Is = 'ABCDEFGHI',
-			Js = 'abcdefghi',
-			teams = {x: 'red', o: 'blue', $confirmed: false};
-		for (i in pixels) {
-			for (var j in pixels[i]) {
-				let I = Is[Math.floor(i / 3) * 3 + Math.floor(j / 3)],
-					J = Js[(i % 3) * 3 + j % 3];
+			// transpose into board structure and confirm team colors
+			let boards = Defaults.boards(),
+				Is = 'ABCDEFGHI',
+				Js = 'abcdefghi',
+				teams = {x: 'red', o: 'blue', $confirmed: false};
+			for (i in pixels) {
+				for (var j in pixels[i]) {
+					let I = Is[Math.floor(i / 3) * 3 + Math.floor(j / 3)],
+						J = Js[(i % 3) * 3 + j % 3];
 
-				boards[I].tiles[J] = pixels[i][j];
+					boards[I].tiles[J] = pixels[i][j];
 
-				if (pixels[i][j].letter === false && !teams.$confirmed) {
-					// we've found a blank tile in an unclaimed board, so let's confirm our teams, if possible
-					for (var k in boards[I].tiles) {
-						if (boards[I].tiles[k] && boards[I].tiles[k].color) {
-							// there's a claimed tile within the same board as the blank tile, so let's align our teams accordingly
-							let color = boards[I].tiles[k].color[0] < 50 ? 'blue' : 'red';
-							if (teams[boards[I].tiles[k].letter] !== color) {
-								// team colors are wrong, flip em
-								var tmp = teams.o;
-								teams.o = teams.x;
-								teams.x = tmp;
-							} else {
-								// team colors are right, move on
+					if (pixels[i][j].letter === false && !teams.$confirmed) {
+						// we've found a blank tile in an unclaimed board, so let's confirm our teams, if possible
+						for (var k in boards[I].tiles) {
+							if (boards[I].tiles[k] && boards[I].tiles[k].color) {
+								// there's a claimed tile within the same board as the blank tile, so let's align our teams accordingly
+								let color = boards[I].tiles[k].color[0] < 50 ? 'blue' : 'red';
+								if (teams[boards[I].tiles[k].letter] !== color) {
+									// team colors are wrong, flip em
+									var tmp = teams.o;
+									teams.o = teams.x;
+									teams.x = tmp;
+								} else {
+									// team colors are right, move on
+								}
+								// don't check again
+								teams.$confirmed = true;
+								break;
 							}
-							// don't check again
-							teams.$confirmed = true;
-							break;
 						}
 					}
 				}
 			}
-		}
 
-		// finalize boards taking team color into account
-		for (i in boards) {
-			for (var j in boards[i].tiles) {
-				boards[i].tiles[j] = boards[i].tiles[j].letter ? teams[boards[i].tiles[j].letter] : null;
+			// finalize boards taking team color into account
+			for (i in boards) {
+				for (var j in boards[i].tiles) {
+					boards[i].tiles[j] = boards[i].tiles[j].letter ? teams[boards[i].tiles[j].letter] : null;
+				}
 			}
+			return {
+				created: new Date().toISOString(),
+				boards,
+				blue: teams.x === 'blue' ? 'x' : 'o',
+				red: teams.o === 'red' ? 'o' : 'x',
+			};
+		} catch(err) {
+			alert(err);
 		}
-		return {
-			created: new Date().toISOString(),
-			boards,
-			blue: teams.x === 'blue' ? 'x' : 'o',
-			red: teams.o === 'red' ? 'o' : 'x',
-		};
 	},
 
 	handleUpload(e) {
@@ -587,8 +605,9 @@ let ImageScanner = React.createClass({
 			let img = new Image();
 			img.src = e.target.result;
 
-			this.props.onImageScanned(this.scanImage(img));
+			img.onload = e => this.props.onImageScanned(this.scanImage(img));
 		};
+		reader.onerror = err => alert(err);
 		reader.readAsDataURL(e.target.files[0]);
 	},
 

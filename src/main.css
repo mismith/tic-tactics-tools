@@ -295,7 +295,8 @@ figure {
 	height: 100%;
 	max-width: 800px;
 
-	& > header {
+	& > header,
+	& > footer {
 		display: flex;
 		align-items: center;
 		margin: var(--raise) var(--raise) 0;
@@ -317,6 +318,9 @@ figure {
 			}
 		}
 	}
+	& > footer {
+		justify-content: flex-end;
+	}
 }
 .gameitems {
 	display: flex;
@@ -328,7 +332,7 @@ figure {
 	margin-bottom: calc(2 * var(--spacing));
 	cursor: pointer;
 
-	& > figure {
+	& figure {
 		position: relative;
 		margin-right: var(--spacing);
 		z-index: 2;
@@ -397,8 +401,6 @@ figure {
 			@mixin raise;
 		}
 		& .swipeable {
-			position: relative;
-
 			&:after {
 				content: '';
 				position: absolute;
@@ -417,19 +419,39 @@ figure {
 		background-color: var(--blue);
 		color: white;
 
-		& > figure {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			width: var(--thumb-size);
-			height: var(--thumb-size);
-			margin-right: 0;
-		}
-		& .swipeable {
-			background-color: var(--bg);
-			color: var(--blue);
-			font-size: 3em;
-			margin: var(--spacing);
+		& > div {
+			position: relative;
+			overflow: hidden;
+
+			& > figure {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				width: var(--thumb-size);
+				height: var(--thumb-size);
+				margin-right: 0;
+			}
+			& .swipeable {
+				background-color: var(--bg);
+				color: var(--blue);
+				font-size: 3em;
+				margin: var(--spacing);
+
+				& small {
+					color: var(--dark);
+					font-size: 36px;
+					margin: 18px 0 0 10px;
+				}
+			}
+			& > input[type=file] {
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				font-size: 100px;
+				opacity: 0;
+			}
 		}
 	}
 }

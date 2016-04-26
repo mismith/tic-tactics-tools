@@ -364,7 +364,8 @@ figure {
 	max-width: 800px
 }
 
-.gameview > header {
+.gameview > header,
+	.gameview > footer {
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: -ms-flexbox;
@@ -376,7 +377,7 @@ figure {
 	margin: 16px 16px 0;
 }
 
-.gameview > header > div {
+.gameview > header > div, .gameview > footer > div {
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: -ms-flexbox;
@@ -399,7 +400,9 @@ figure {
 }
 
 .gameview > header > div input,
-			.gameview > header > div output {
+			.gameview > header > div output,
+			.gameview > footer > div input,
+			.gameview > footer > div output {
 	-webkit-box-flex: 1;
 	-webkit-flex-grow: 1;
 	    -ms-flex-positive: 1;
@@ -408,6 +411,13 @@ figure {
 	font-size: 1.5em;
 	text-align: center;
 	margin: 16px;
+}
+
+.gameview > footer {
+	-webkit-box-pack: end;
+	-webkit-justify-content: flex-end;
+	    -ms-flex-pack: end;
+	        justify-content: flex-end;
 }
 .gameitems {
 	display: -webkit-box;
@@ -429,7 +439,7 @@ figure {
 	margin-bottom: 16px;
 	cursor: pointer
 }
-.gameitem > figure {
+.gameitem figure {
 	position: relative;
 	margin-right: 8px;
 	z-index: 2;
@@ -535,9 +545,7 @@ figure {
 	border-right: solid 8px transparent;
 	border-top: solid 8px #717170;
 }
-.gameitem:not(.new) .swipeable {
-	position: relative;
-}
+.gameitem:not(.new) .swipeable {}
 .gameitem:not(.new) .swipeable:after {
 	content: '';
 	position: absolute;
@@ -577,7 +585,11 @@ figure {
 	border-right: solid 8px transparent;
 	border-top: solid 8px rgb(0, 158, 176);
 }
-.gameitem.new > figure {
+.gameitem.new > div {
+	position: relative;
+	overflow: hidden;
+}
+.gameitem.new > div > figure {
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: -ms-flexbox;
@@ -594,11 +606,25 @@ figure {
 	height: 150px;
 	margin-right: 0;
 }
-.gameitem.new .swipeable {
+.gameitem.new > div .swipeable {
 	background-color: #e8e8e8;
 	color: #00c2d7;
 	font-size: 3em;
 	margin: 8px;
+}
+.gameitem.new > div .swipeable small {
+	color: #a7a7a7;
+	font-size: 36px;
+	margin: 18px 0 0 10px;
+}
+.gameitem.new > div > input[type=file] {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	font-size: 100px;
+	opacity: 0;
 }
 
 .btn {
