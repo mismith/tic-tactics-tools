@@ -205,7 +205,7 @@ figure {
 			background-color: var(--dark);
 		}
 	}
-	&.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
+	&.active .tile:not(.blocked):not(.blue):not(.red) {
 		@mixin raise var(--tile-raise);
 		cursor: pointer;
 	}
@@ -283,7 +283,7 @@ figure {
 		height: calc(33.333% - var(--tile-spacing));
 		margin: calc(var(--tile-spacing) / 2);
 	}
-	.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
+	.board.active .tile:not(.blocked):not(.blue):not(.red) {
 		@mixin raise calc(var(--tile-raise) / 2);
 	}
 }*/
@@ -392,12 +392,10 @@ figure {
 			}
 		}
 	}
-	&:not(:active):not(.new) {
+	&:not(.new) {
 		& > * {
 			@mixin raise;
 		}
-	}
-	&:not(.new) {
 		& .swipeable {
 			position: relative;
 
@@ -432,9 +430,6 @@ figure {
 			font-size: 3em;
 			margin: var(--spacing);
 		}
-		&:not(:active) {
-			@mixin raise var(--spacing), color(var(--blue) blackness(+15%));
-		}
 	}
 }
 
@@ -464,9 +459,6 @@ figure {
 	&:not(:disabled) {
 		&.green-faded {
 			background-color: var(--green-faded);
-		}
-		&:active {
-			border-width: 5px;
 		}
 	}
 }
