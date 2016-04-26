@@ -17,48 +17,56 @@ let Swipeable = React.createClass({
 		};
 	},
 
-	componentDidMount() {
-		document.addEventListener('mousemove', this.handleMouseMove);
-		document.addEventListener('mouseup', this.handleMouseUp);
-	},
-	componentWillUnmount() {
-		document.removeEventListener('mousemove', this.handleMouseMove);
-		document.removeEventListener('mouseup', this.handleMouseUp);
-	},
+	handleStart(e) {
+		let touch = e.touches && e.touches.length,
+			x = (touch ? e.touches[0] : e).clientX,
+			y = (touch ? e.touches[0] : e).clientY;
 
-	handleMouseDown(e) {
 		this.setState({
 			start: Date.now(),
-			x: e.clientX,
-			y: e.clientY,
-			swiping: false,
+			x,
+			y,
 		});
+
+		document.addEventListener(touch ? 'touchmove' : 'mousemove', this.handleMove);
+		document.addEventListener(touch ? 'touchend' : 'mouseup',  this.handleEnd);
 	},
-	handleMouseMove(e) {
-		if (Math.max(Math.abs(e.clientY - this.state.y), Math.abs(e.clientX - this.state.x)) > this.props.threshold) {
+	handleMove(e) {
+		let touch = e.touches && e.touches.length,
+			x = (touch ? e.touches[0] : e).clientX,
+			y = (touch ? e.touches[0] : e).clientY;
+
+		if (Math.max(Math.abs(y - this.state.y), Math.abs(x - this.state.x)) > this.props.threshold) {
 			this.setState({
 				swiping: true,
 			});
 		}
 	},
-	handleMouseUp(e) {
+	handleEnd(e) {
+		let touch = e.changedTouches && e.changedTouches.length,
+			x = (touch ? e.changedTouches[0] : e).clientX,
+			y = (touch ? e.changedTouches[0] : e).clientY;
+
 		if (this.state.swiping) {
-			if (e.clientX - this.state.x < -this.props.threshold) {
+			if (x - this.state.x < -this.props.threshold) {
 				this.props.onSwipeLeft && this.props.onSwipeLeft(e);
-			} else if (e.clientX - this.state.x > this.props.threshold) {
+			} else if (x - this.state.x > this.props.threshold) {
 				this.props.onSwipeRight && this.props.onSwipeRight(e);
-			} else if (e.clientY - this.state.y < -this.props.threshold) {
+			} else if (y - this.state.y < -this.props.threshold) {
 				this.props.onSwipeUp && this.props.onSwipeUp(e);
-			} else if (e.clientY - this.state.y > this.props.threshold) {
+			} else if (y - this.state.y > this.props.threshold) {
 				this.props.onSwipeDown && this.props.onSwipeDown(e);
 			}
 		}
 
 		this.setState(this.getInitialState());
+
+		document.removeEventListener(touch ? 'touchmove' : 'mousemove', this.handleMove);
+		document.removeEventListener(touch ? 'touchend' : 'mouseup',  this.handleEnd);
 	},
 
 	render() {
-		return <div onMouseDown={this.handleMouseDown} {...this.props}>
+		return <div onMouseDown={this.handleStart} onTouchStart={this.handleStart} {...this.props}>
 			{this.props.children}
 		</div>
 	},
