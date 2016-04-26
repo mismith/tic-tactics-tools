@@ -131,8 +131,8 @@ Defaults.game = function () {
 	return _.defaultsDeep(overrides, {
 		boards: Defaults.boards(),
 		turns: [],
-		canChooseAnyTile: true,
-		previous: 'Ee',
+		canChooseAnyTile: null,
+		previous: null,
 		turn: 'blue',
 		blue: 'x',
 		red: 'o'
@@ -162,6 +162,7 @@ var TicTacticsTools = React.createClass({
 					meRef.update(_extends({}, authData[authData.provider], {
 						uid: authData.uid
 					}));
+
 					_this2.bindAsObject(meRef, 'me');
 
 					// online presence
@@ -190,24 +191,37 @@ var TicTacticsTools = React.createClass({
 		});
 	},
 	login: function login() {
-		this.firebase.authWithOAuthPopup('facebook');
+		var _this3 = this;
+
+		this.firebase.authWithOAuthPopup('facebook', function (err) {
+			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
+				_this3.firebase.authWithOAuthRedirect('facebook');
+			}
+		});
 	},
 	logout: function logout() {
 		this.firebase.unauth();
 		location.reload(); // @HACK
 	},
-	pickGame: function pickGame(gameId) {
-		if (!gameId) gameId = this.firebaseRefs.games.push().key();
+	createGame: function createGame(gameData) {
+		var _this4 = this;
 
-		this.setState({
-			gameRef: this.firebaseRefs.games.child(gameId)
+		this.pickGame(null, function () {
+			return _this4.state.gameRef.update(gameData);
 		});
+	},
+	pickGame: function pickGame(gameId, callback) {
+		if (!this.firebaseRefs.games) return alert('You must login first.');
+		if (!gameId) gameId = this.firebaseRefs.games.push().key();
 
 		if (this.firebaseRefs.me) {
 			this.firebaseRefs.me.update({
 				gameId: gameId
 			});
 		}
+		this.setState({
+			gameRef: this.firebaseRefs.games.child(gameId)
+		}, callback);
 	},
 	deleteGame: function deleteGame(gameId) {
 		if (!gameId) return;
@@ -217,7 +231,7 @@ var TicTacticsTools = React.createClass({
 		this.pickGame(); // go to new game
 	},
 	render: function render() {
-		var _this3 = this;
+		var _this5 = this;
 
 		return React.createElement(
 			'div',
@@ -249,11 +263,11 @@ var TicTacticsTools = React.createClass({
 					{ className: 'gameitems' },
 					React.createElement(
 						'li',
-						{ className: 'gameitem new', onClick: this.pickGame.bind(this, undefined) },
+						{ className: 'gameitem new', onClick: this.pickGame.bind(this, null, null) },
 						React.createElement(
 							'figure',
 							null,
-							React.createElement('img', { src: 'icons/plus.svg', height: '50' })
+							React.createElement('img', { src: 'icons/plus.svg' })
 						),
 						React.createElement(
 							'div',
@@ -268,12 +282,19 @@ var TicTacticsTools = React.createClass({
 					this.state.games.sort(function (a, b) {
 						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
 					}).map(function (game) {
-						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this3.state.gameRef && _this3.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
-								return _this3.pickGame(game['.key']);
+						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this5.state.gameRef && _this5.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
+								return _this5.pickGame(game['.key']);
 							}, onDelete: function onDelete(e) {
-								return _this3.deleteGame(game['.key']);
+								return _this5.deleteGame(game['.key']);
 							} });
 					})
+				),
+				React.createElement(
+					'footer',
+					null,
+					React.createElement(ImageScanner, { onImageScanned: function onImageScanned(gameData) {
+							return _this5.createGame(gameData);
+						} })
 				)
 			)
 		);
@@ -293,7 +314,7 @@ var GameItem = React.createClass({
 		};
 	},
 	render: function render() {
-		var _this4 = this;
+		var _this6 = this;
 
 		var _props = this.props;
 		var game = _props.game;
@@ -316,9 +337,9 @@ var GameItem = React.createClass({
 				React.createElement(
 					Swipeable,
 					{ className: 'swipeable', onSwipeLeft: function onSwipeLeft(e) {
-							return _this4.setState({ deleting: true });
+							return _this6.setState({ deleting: true });
 						}, onSwipeRight: function onSwipeRight(e) {
-							return _this4.setState({ deleting: false });
+							return _this6.setState({ deleting: false });
 						} },
 					React.createElement(
 						'div',
@@ -372,10 +393,13 @@ var Game = React.createClass({
 		game[game.created ? 'updated' : 'created'] = new Date().toISOString();
 		delete game['.key'];
 		delete game['.value'];
+		delete game.$dirty;
 
 		this.props.gameRef.update(game);
 	},
 	handleClick: function handleClick(i, j, player, previous, e) {
+		if (!this.props.gameRef) return alert('You must login first.');
+
 		// @TODO: check/confirm if allowed
 		var game = Defaults.game(this.state.game);
 
@@ -389,7 +413,7 @@ var Game = React.createClass({
 			game.boards[i].tiles[j] = newPlayer;
 		} else {
 			// make a turn
-			game.canChooseAnyTile = false;
+			game.canChooseAnyTile = null;
 			if (previous) {
 				var J = j.toUpperCase(),
 				    tilesLeftInDestinationBoard = _.filter(game.boards[J].tiles, function (tile) {
@@ -407,10 +431,11 @@ var Game = React.createClass({
 			game.previous = i + j;
 			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
+		game.$dirty = true;
 		this.setState({ game: game });
 	},
 	render: function render() {
-		var _this5 = this;
+		var _this7 = this;
 
 		var _props2 = this.props;
 		var me = _props2.me;
@@ -435,22 +460,27 @@ var Game = React.createClass({
 					)
 				),
 				React.createElement(Tile, { className: 'turn-indicator btn', player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red, onClick: function onClick(e) {
-						return _this5.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
+						return _this7.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
 					} }),
 				React.createElement(
 					'div',
 					null,
-					React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent', onChange: function onChange(e) {
-							return _this5.setState({ game: _extends({}, game, { opponent: e.target.value }) });
+					React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent', size: '8', onChange: function onChange(e) {
+							return _this7.setState({ game: _extends({}, game, { opponent: e.target.value }) });
 						} }),
-					React.createElement(
-						'button',
-						{ className: 'btn mini green-faded', disabled: !game.opponent || !me, onClick: this.handleSave },
-						React.createElement('img', { src: 'icons/check.svg', height: '16' })
-					)
+					React.createElement('span', { className: 'btn mini avatar red', style: { backgroundImage: 'url(avatar.svg)' } })
 				)
 			),
-			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game))
+			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game)),
+			React.createElement(
+				'footer',
+				null,
+				React.createElement(
+					'button',
+					{ className: 'btn green-faded', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleSave },
+					React.createElement('img', { src: 'icons/check.svg', height: '32' })
+				)
+			)
 		);
 	}
 });
@@ -487,7 +517,6 @@ var Board = React.createClass({
 		return {
 			tiles: Defaults.tiles(),
 			i: 'A',
-			canChooseAnyTile: false,
 			blue: 'x',
 			red: 'o',
 			onClick: function onClick() {}
@@ -580,6 +609,119 @@ var Tile = React.createClass({
 			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') + ' ' + className, onContextMenu: this.props.onClick }, props),
 			letter && React.createElement('img', { src: 'icons/' + letter + '.svg' })
 		);
+	}
+});
+
+var ImageScanner = React.createClass({
+	displayName: 'ImageScanner',
+	getDefaultProps: function getDefaultProps() {
+		return {
+			onImageScanned: function onImageScanned(gameData) {}
+		};
+	},
+	scanImage: function scanImage(img) {
+		var c = document.createElement('canvas'),
+		    ctx = c.getContext('2d');
+		c.width = img.width;
+		c.height = img.height;
+
+		ctx.drawImage(img, 0, 0);
+
+		var getPixel = {
+			x: function x(i, j) {
+				return ctx.getImageData(74 + j * 74 + (j >= 6 ? 11 : j >= 3 ? 5 : 0), 436 + i * 74 + (i >= 6 ? 11 : i >= 3 ? 5 : 0), 1, 1).data;
+			},
+			o: function o(i, j) {
+				return ctx.getImageData(56 + j * 74 + (j >= 6 ? 11 : j >= 3 ? 5 : 0), 436 + i * 74 + (i >= 6 ? 11 : i >= 3 ? 5 : 0), 1, 1).data;
+			}
+		};
+
+		// scan pixel grid
+		var pixels = {};
+		for (var i = 0; i < 9; i++) {
+			pixels[i] = {};
+			for (var j = 0; j < 9; j++) {
+				var x = getPixel.x(i, j),
+				    o = getPixel.o(i, j);
+				if (x.every(function (item) {
+					return item === 255;
+				})) {
+					// claimed X
+					pixels[i][j] = { letter: 'x', color: o };
+				} else if (o.every(function (item) {
+					return item === 255;
+				})) {
+					// claimed O
+					pixels[i][j] = { letter: 'o', color: x };
+				} else {
+					// gray tile / unclaimed
+					pixels[i][j] = { letter: x[0] === x[1] && x[1] === x[2] ? false : null, color: null };
+				}
+			}
+		}
+
+		// transpose into board structure and confirm team colors
+		var boards = Defaults.boards(),
+		    Is = 'ABCDEFGHI',
+		    Js = 'abcdefghi',
+		    teams = { x: 'red', o: 'blue', $confirmed: false };
+		for (i in pixels) {
+			for (var j in pixels[i]) {
+				var I = Is[Math.floor(i / 3) * 3 + Math.floor(j / 3)],
+				    J = Js[i % 3 * 3 + j % 3];
+
+				boards[I].tiles[J] = pixels[i][j];
+
+				if (pixels[i][j].letter === false && !teams.$confirmed) {
+					// we've found a blank tile in an unclaimed board, so let's confirm our teams, if possible
+					for (var k in boards[I].tiles) {
+						if (boards[I].tiles[k] && boards[I].tiles[k].color) {
+							// there's a claimed tile within the same board as the blank tile, so let's align our teams accordingly
+							var color = boards[I].tiles[k].color[0] < 50 ? 'blue' : 'red';
+							if (teams[boards[I].tiles[k].letter] !== color) {
+								// team colors are wrong, flip em
+								var tmp = teams.o;
+								teams.o = teams.x;
+								teams.x = tmp;
+							} else {}
+							// team colors are right, move on
+
+							// don't check again
+							teams.$confirmed = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		// finalize boards taking team color into account
+		for (i in boards) {
+			for (var j in boards[i].tiles) {
+				boards[i].tiles[j] = boards[i].tiles[j].letter ? teams[boards[i].tiles[j].letter] : null;
+			}
+		}
+		return {
+			created: new Date().toISOString(),
+			boards: boards,
+			blue: teams.x === 'blue' ? 'x' : 'o',
+			red: teams.o === 'red' ? 'o' : 'x'
+		};
+	},
+	handleUpload: function handleUpload(e) {
+		var _this8 = this;
+
+		var reader = new FileReader();
+		reader.onload = function (e) {
+			var img = new Image();
+			img.src = e.target.result;
+
+			_this8.props.onImageScanned(_this8.scanImage(img));
+		};
+		reader.readAsDataURL(e.target.files[0]);
+	},
+	render: function render() {
+		return React.createElement('input', { type: 'file', accepts: 'image/png', onChange: this.handleUpload });
 	}
 });
 

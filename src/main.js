@@ -114,8 +114,8 @@ Defaults.game = function(overrides = {}){
 	return _.defaultsDeep(overrides, {
 		boards: Defaults.boards(),
 		turns: [],
-		canChooseAnyTile: true,
-		previous: 'Ee',
+		canChooseAnyTile: null,
+		previous: null,
 		turn: 'blue',
 		blue: 'x',
 		red: 'o',
@@ -146,6 +146,7 @@ let TicTacticsTools = React.createClass({
 					...authData[authData.provider],
 					uid: authData.uid,
 				});
+
 				this.bindAsObject(meRef, 'me');
 
 				// online presence
@@ -174,25 +175,32 @@ let TicTacticsTools = React.createClass({
 	},
 
 	login() {
-		this.firebase.authWithOAuthPopup('facebook');
+		this.firebase.authWithOAuthPopup('facebook', err => {
+			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
+				this.firebase.authWithOAuthRedirect('facebook');
+			}
+		});
 	},
 	logout() {
 		this.firebase.unauth();
 		location.reload(); // @HACK
 	},
 
-	pickGame(gameId) {
+	createGame(gameData) {
+		this.pickGame(null, () => this.state.gameRef.update(gameData));
+	},
+	pickGame(gameId, callback) {
+		if (!this.firebaseRefs.games) return alert('You must login first.');
 		if (!gameId) gameId = this.firebaseRefs.games.push().key();
-
-		this.setState({
-			gameRef: this.firebaseRefs.games.child(gameId),
-		});
 
 		if (this.firebaseRefs.me) {
 			this.firebaseRefs.me.update({
 				gameId: gameId,
 			});
 		}
+		this.setState({
+			gameRef: this.firebaseRefs.games.child(gameId),
+		}, callback);
 	},
 	deleteGame(gameId) {
 		if (!gameId) return;
@@ -213,9 +221,9 @@ let TicTacticsTools = React.createClass({
 					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
 				</header>
 				<ul className="gameitems">
-					<li className="gameitem new" onClick={this.pickGame.bind(this, undefined)}>
+					<li className="gameitem new" onClick={this.pickGame.bind(this, null, null)}>
 						<figure>
-							<img src="icons/plus.svg" height="50" />
+							<img src="icons/plus.svg" />
 						</figure>
 						<div className="flex-grow flex-row">
 							<div className="swipeable">New</div>
@@ -225,6 +233,9 @@ let TicTacticsTools = React.createClass({
 					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
 				)}
 				</ul>
+				<footer>
+					<ImageScanner onImageScanned={gameData => this.createGame(gameData)} />
+				</footer>
 			</aside>
 		</div>
 	},
@@ -294,11 +305,14 @@ let Game = React.createClass({
 		game[game.created ? 'updated' : 'created'] = new Date().toISOString();
 		delete game['.key'];
 		delete game['.value'];
+		delete game.$dirty;
 
 		this.props.gameRef.update(game);
 	},
 
 	handleClick(i, j, player, previous, e) {
+		if (!this.props.gameRef) return alert('You must login first.');
+
 		// @TODO: check/confirm if allowed
 		let game = Defaults.game(this.state.game);
 
@@ -312,7 +326,7 @@ let Game = React.createClass({
 			game.boards[i].tiles[j] = newPlayer;
 		} else {
 			// make a turn
-			game.canChooseAnyTile = false;
+			game.canChooseAnyTile = null;
 			if (previous) {
 				let J = j.toUpperCase(),
 					tilesLeftInDestinationBoard = _.filter(game.boards[J].tiles, tile => !tile).length;
@@ -329,6 +343,7 @@ let Game = React.createClass({
 			game.previous = i + j;
 			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
+		game.$dirty = true;
 		this.setState({game});
 	},
 
@@ -344,13 +359,16 @@ let Game = React.createClass({
 				</div>
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<div>
-					<input value={game.opponent || ''} placeholder="Opponent" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
-					<button className="btn mini green-faded" disabled={!game.opponent || !me} onClick={this.handleSave}>
-						<img src="icons/check.svg" height="16" />
-					</button>
+					<input value={game.opponent || ''} placeholder="Opponent" size="8" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
+					<span className="btn mini avatar red" style={{backgroundImage: `url(avatar.svg)`}}></span>
 				</div>
 			</header>
 			<MegaBoard onClick={this.handleClick} {...game} />
+			<footer>
+				<button className="btn green-faded" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleSave}>
+					<img src="icons/check.svg" height="32" />
+				</button>
+			</footer>
 		</div>
 	},
 });
@@ -379,7 +397,6 @@ let Board = React.createClass({
 		return {
 			tiles: Defaults.tiles(),
 			i: 'A',
-			canChooseAnyTile: false,
 			blue: 'x',
 			red: 'o',
 			onClick: () => {},
@@ -464,6 +481,111 @@ let Tile = React.createClass({
 			<img src={`icons/${letter}.svg`} />
 		}
 		</span>
+	},
+});
+
+
+let ImageScanner = React.createClass({
+	getDefaultProps() {
+		return {
+			onImageScanned: gameData => {},
+		};
+	},
+	scanImage(img) {
+		var c   = document.createElement('canvas'),
+			ctx = c.getContext('2d');
+		c.width = img.width;
+		c.height = img.height;
+
+		ctx.drawImage(img, 0, 0);
+
+		let getPixel = {
+			x: (i, j) => ctx.getImageData(74 + j*74 + (j >= 6 ? 11 : (j >= 3 ? 5 : 0)), 436 + i*74 + (i >= 6 ? 11 : (i >= 3 ? 5 : 0)), 1, 1).data,
+			o: (i, j) => ctx.getImageData(56 + j*74 + (j >= 6 ? 11 : (j >= 3 ? 5 : 0)), 436 + i*74 + (i >= 6 ? 11 : (i >= 3 ? 5 : 0)), 1, 1).data,
+		};
+
+		// scan pixel grid
+		let pixels = {};
+		for (var i = 0; i < 9; i++) {
+			pixels[i] = {};
+			for (var j = 0; j < 9; j++) {
+				var x = getPixel.x(i, j),
+					o = getPixel.o(i, j);
+				if (x.every(item => item === 255)) {
+					// claimed X
+					pixels[i][j] = {letter: 'x', color: o};
+				} else if (o.every(item => item === 255)) {
+					// claimed O
+					pixels[i][j] = {letter: 'o', color: x};
+				} else {
+					// gray tile / unclaimed
+					pixels[i][j] = {letter: x[0] === x[1] && x[1] === x[2] ? false : null, color: null};
+				}
+			}
+		}
+
+		// transpose into board structure and confirm team colors
+		let boards = Defaults.boards(),
+			Is = 'ABCDEFGHI',
+			Js = 'abcdefghi',
+			teams = {x: 'red', o: 'blue', $confirmed: false};
+		for (i in pixels) {
+			for (var j in pixels[i]) {
+				let I = Is[Math.floor(i / 3) * 3 + Math.floor(j / 3)],
+					J = Js[(i % 3) * 3 + j % 3];
+
+				boards[I].tiles[J] = pixels[i][j];
+
+				if (pixels[i][j].letter === false && !teams.$confirmed) {
+					// we've found a blank tile in an unclaimed board, so let's confirm our teams, if possible
+					for (var k in boards[I].tiles) {
+						if (boards[I].tiles[k] && boards[I].tiles[k].color) {
+							// there's a claimed tile within the same board as the blank tile, so let's align our teams accordingly
+							let color = boards[I].tiles[k].color[0] < 50 ? 'blue' : 'red';
+							if (teams[boards[I].tiles[k].letter] !== color) {
+								// team colors are wrong, flip em
+								var tmp = teams.o;
+								teams.o = teams.x;
+								teams.x = tmp;
+							} else {
+								// team colors are right, move on
+							}
+							// don't check again
+							teams.$confirmed = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		// finalize boards taking team color into account
+		for (i in boards) {
+			for (var j in boards[i].tiles) {
+				boards[i].tiles[j] = boards[i].tiles[j].letter ? teams[boards[i].tiles[j].letter] : null;
+			}
+		}
+		return {
+			created: new Date().toISOString(),
+			boards,
+			blue: teams.x === 'blue' ? 'x' : 'o',
+			red: teams.o === 'red' ? 'o' : 'x',
+		};
+	},
+
+	handleUpload(e) {
+		let reader = new FileReader();
+		reader.onload = e => {
+			let img = new Image();
+			img.src = e.target.result;
+
+			this.props.onImageScanned(this.scanImage(img));
+		};
+		reader.readAsDataURL(e.target.files[0]);
+	},
+
+	render() {
+		return <input type="file" accepts="image/png" onChange={this.handleUpload} />
 	},
 });
 
