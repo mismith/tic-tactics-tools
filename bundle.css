@@ -481,8 +481,8 @@ figure {
 	padding: 16px;
 	border-radius: 50% 0 0 50%;
 	border: 0;
-	-webkit-transform: translate3d(100%, 0, 0);
-	        transform: translate3d(100%, 0, 0);
+	-webkit-transform: translate3d(105%, 0, 0);
+	        transform: translate3d(105%, 0, 0);
 	-webkit-transition: all 300ms;
 	transition: all 300ms;
 	z-index: 2;
@@ -550,8 +550,32 @@ figure {
 	opacity: .15;
 }
 .gameitem.new {
+	-webkit-transform: translate(8px, -8px);
+	        transform: translate(8px, -8px);
 	background-color: #00c2d7;
 	color: white;
+}
+.gameitem.new:before,
+	.gameitem.new:after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+.gameitem.new:before {
+	left: -8px;
+	top: 0;
+	bottom: -8px;
+	width: 0;
+	border-top: solid 8px transparent;
+	border-right: solid 8px rgb(0, 158, 176);
+}
+.gameitem.new:after {
+	left: -8px;
+	bottom: -8px;
+	right: 0;
+	height: 0;
+	border-right: solid 8px transparent;
+	border-top: solid 8px rgb(0, 158, 176);
 }
 .gameitem.new > figure {
 	display: -webkit-box;
