@@ -260,11 +260,6 @@ var TicTacticsTools = React.createClass({
 						'button',
 						{ hidden: this.state.me, onClick: this.login },
 						'Login with Facebook'
-					),
-					React.createElement(
-						'button',
-						{ hidden: !this.state.me, onClick: this.logout },
-						'Logout'
 					)
 				),
 				React.createElement(
@@ -272,19 +267,48 @@ var TicTacticsTools = React.createClass({
 					{ className: 'gameitems' },
 					React.createElement(
 						'li',
-						{ className: 'gameitem new', onClick: this.pickGame.bind(this, null, null) },
-						React.createElement(
-							'figure',
-							null,
-							React.createElement('img', { src: 'icons/plus.svg' })
-						),
+						{ className: 'gameitem new' },
 						React.createElement(
 							'div',
-							{ className: 'flex-grow flex-row' },
+							{ className: 'flex-row flex-grow' },
+							React.createElement(
+								'figure',
+								null,
+								React.createElement('img', { src: 'icons/plus.svg' })
+							),
 							React.createElement(
 								'div',
-								{ className: 'swipeable' },
-								'New'
+								{ className: 'flex-grow flex-row' },
+								React.createElement(
+									'div',
+									{ className: 'swipeable' },
+									'Screenshot'
+								)
+							),
+							React.createElement(ImageScanner, { onImageScanned: function onImageScanned(gameData) {
+									return _this5.createGame(gameData);
+								} })
+						)
+					),
+					React.createElement(
+						'li',
+						{ className: 'gameitem new', onClick: this.pickGame.bind(this, null, null) },
+						React.createElement(
+							'div',
+							{ className: 'flex-row flex-grow' },
+							React.createElement(
+								'figure',
+								null,
+								React.createElement('img', { src: 'icons/plus.svg' })
+							),
+							React.createElement(
+								'div',
+								{ className: 'flex-grow flex-row' },
+								React.createElement(
+									'div',
+									{ className: 'swipeable' },
+									'New'
+								)
 							)
 						)
 					),
@@ -301,9 +325,11 @@ var TicTacticsTools = React.createClass({
 				React.createElement(
 					'footer',
 					null,
-					React.createElement(ImageScanner, { onImageScanned: function onImageScanned(gameData) {
-							return _this5.createGame(gameData);
-						} })
+					React.createElement(
+						'button',
+						{ hidden: !this.state.me, onClick: this.logout },
+						'Logout'
+					)
 				)
 			)
 		);
@@ -629,93 +655,95 @@ var ImageScanner = React.createClass({
 		};
 	},
 	scanImage: function scanImage(img) {
-		var c = document.createElement('canvas'),
-		    ctx = c.getContext('2d');
-		c.width = img.width;
-		c.height = img.height;
+		try {
+			if (!img.width || !img.height) throw new Error('Invalid image');
 
-		ctx.drawImage(img, 0, 0);
+			var c = document.createElement('canvas'),
+			    ctx = c.getContext('2d');
+			c.width = img.width;
+			c.height = img.height;
 
-		var getPixel = {
-			x: function x(i, j) {
-				return ctx.getImageData(74 + j * 74 + (j >= 6 ? 11 : j >= 3 ? 5 : 0), 436 + i * 74 + (i >= 6 ? 11 : i >= 3 ? 5 : 0), 1, 1).data;
-			},
-			o: function o(i, j) {
-				return ctx.getImageData(56 + j * 74 + (j >= 6 ? 11 : j >= 3 ? 5 : 0), 436 + i * 74 + (i >= 6 ? 11 : i >= 3 ? 5 : 0), 1, 1).data;
-			}
-		};
+			ctx.drawImage(img, 0, 0);
 
-		// scan pixel grid
-		var pixels = {};
-		for (var i = 0; i < 9; i++) {
-			pixels[i] = {};
-			for (var j = 0; j < 9; j++) {
-				var x = getPixel.x(i, j),
-				    o = getPixel.o(i, j);
-				if (x.every(function (item) {
-					return item === 255;
-				})) {
-					// claimed X
-					pixels[i][j] = { letter: 'x', color: o };
-				} else if (o.every(function (item) {
-					return item === 255;
-				})) {
-					// claimed O
-					pixels[i][j] = { letter: 'o', color: x };
-				} else {
-					// gray tile / unclaimed
-					pixels[i][j] = { letter: x[0] === x[1] && x[1] === x[2] ? false : null, color: null };
+			var getPixel = {
+				x: function x(i, j) {
+					return ctx.getImageData(74 + j * 74 + (j >= 6 ? 11 : j >= 3 ? 5 : 0), 436 + i * 74 + (i >= 6 ? 11 : i >= 3 ? 5 : 0), 1, 1).data || [];
+				},
+				o: function o(i, j) {
+					return ctx.getImageData(56 + j * 74 + (j >= 6 ? 11 : j >= 3 ? 5 : 0), 436 + i * 74 + (i >= 6 ? 11 : i >= 3 ? 5 : 0), 1, 1).data || [];
+				}
+			};
+
+			// scan pixel grid
+			var pixels = {};
+			for (var i = 0; i < 9; i++) {
+				pixels[i] = {};
+				for (var j = 0; j < 9; j++) {
+					var x = getPixel.x(i, j),
+					    o = getPixel.o(i, j);
+					if (x[0] === x[1] && x[1] === x[2] && x[2] === x[3]) {
+						// claimed X
+						pixels[i][j] = { letter: 'x', color: o };
+					} else if (o[0] === o[1] && o[1] === o[2] && o[2] === o[3]) {
+						// claimed O
+						pixels[i][j] = { letter: 'o', color: x };
+					} else {
+						// gray tile / unclaimed
+						pixels[i][j] = { letter: x[0] === x[1] && x[1] === x[2] ? false : null, color: null };
+					}
 				}
 			}
-		}
 
-		// transpose into board structure and confirm team colors
-		var boards = Defaults.boards(),
-		    Is = 'ABCDEFGHI',
-		    Js = 'abcdefghi',
-		    teams = { x: 'red', o: 'blue', $confirmed: false };
-		for (i in pixels) {
-			for (var j in pixels[i]) {
-				var I = Is[Math.floor(i / 3) * 3 + Math.floor(j / 3)],
-				    J = Js[i % 3 * 3 + j % 3];
+			// transpose into board structure and confirm team colors
+			var boards = Defaults.boards(),
+			    Is = 'ABCDEFGHI',
+			    Js = 'abcdefghi',
+			    teams = { x: 'red', o: 'blue', $confirmed: false };
+			for (i in pixels) {
+				for (var j in pixels[i]) {
+					var I = Is[Math.floor(i / 3) * 3 + Math.floor(j / 3)],
+					    J = Js[i % 3 * 3 + j % 3];
 
-				boards[I].tiles[J] = pixels[i][j];
+					boards[I].tiles[J] = pixels[i][j];
 
-				if (pixels[i][j].letter === false && !teams.$confirmed) {
-					// we've found a blank tile in an unclaimed board, so let's confirm our teams, if possible
-					for (var k in boards[I].tiles) {
-						if (boards[I].tiles[k] && boards[I].tiles[k].color) {
-							// there's a claimed tile within the same board as the blank tile, so let's align our teams accordingly
-							var color = boards[I].tiles[k].color[0] < 50 ? 'blue' : 'red';
-							if (teams[boards[I].tiles[k].letter] !== color) {
-								// team colors are wrong, flip em
-								var tmp = teams.o;
-								teams.o = teams.x;
-								teams.x = tmp;
-							} else {}
-							// team colors are right, move on
+					if (pixels[i][j].letter === false && !teams.$confirmed) {
+						// we've found a blank tile in an unclaimed board, so let's confirm our teams, if possible
+						for (var k in boards[I].tiles) {
+							if (boards[I].tiles[k] && boards[I].tiles[k].color) {
+								// there's a claimed tile within the same board as the blank tile, so let's align our teams accordingly
+								var color = boards[I].tiles[k].color[0] < 50 ? 'blue' : 'red';
+								if (teams[boards[I].tiles[k].letter] !== color) {
+									// team colors are wrong, flip em
+									var tmp = teams.o;
+									teams.o = teams.x;
+									teams.x = tmp;
+								} else {}
+								// team colors are right, move on
 
-							// don't check again
-							teams.$confirmed = true;
-							break;
+								// don't check again
+								teams.$confirmed = true;
+								break;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		// finalize boards taking team color into account
-		for (i in boards) {
-			for (var j in boards[i].tiles) {
-				boards[i].tiles[j] = boards[i].tiles[j].letter ? teams[boards[i].tiles[j].letter] : null;
+			// finalize boards taking team color into account
+			for (i in boards) {
+				for (var j in boards[i].tiles) {
+					boards[i].tiles[j] = boards[i].tiles[j].letter ? teams[boards[i].tiles[j].letter] : null;
+				}
 			}
+			return {
+				created: new Date().toISOString(),
+				boards: boards,
+				blue: teams.x === 'blue' ? 'x' : 'o',
+				red: teams.o === 'red' ? 'o' : 'x'
+			};
+		} catch (err) {
+			alert(err);
 		}
-		return {
-			created: new Date().toISOString(),
-			boards: boards,
-			blue: teams.x === 'blue' ? 'x' : 'o',
-			red: teams.o === 'red' ? 'o' : 'x'
-		};
 	},
 	handleUpload: function handleUpload(e) {
 		var _this8 = this;
@@ -725,7 +753,12 @@ var ImageScanner = React.createClass({
 			var img = new Image();
 			img.src = e.target.result;
 
-			_this8.props.onImageScanned(_this8.scanImage(img));
+			img.onload = function (e) {
+				return _this8.props.onImageScanned(_this8.scanImage(img));
+			};
+		};
+		reader.onerror = function (err) {
+			return alert(err);
 		};
 		reader.readAsDataURL(e.target.files[0]);
 	},
