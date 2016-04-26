@@ -154,7 +154,7 @@ var TicTacticsTools = React.createClass({
 	mixins: [ReactFireMixin],
 	getInitialState: function getInitialState() {
 		return {
-			loading: false,
+			loading: true,
 			me: null,
 			games: [],
 			gameRef: null
@@ -193,13 +193,12 @@ var TicTacticsTools = React.createClass({
 							gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key())
 						});
 					});
-
-					_this2.setState({ loading: false });
 				})();
 			} else {
 				// @TODO: clean up all firebase stuff
 				_this2.setState(_this2.getInitialState());
 			}
+			_this2.setState({ loading: false });
 		});
 	},
 	login: function login() {
@@ -363,6 +362,11 @@ var TicTacticsTools = React.createClass({
 						)
 					)
 				)
+			),
+			React.createElement(
+				'div',
+				{ className: 'loader' },
+				React.createElement('img', { src: 'loading.svg' })
 			)
 		);
 	}

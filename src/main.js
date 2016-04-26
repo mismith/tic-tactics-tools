@@ -138,7 +138,7 @@ let TicTacticsTools = React.createClass({
 	],
 	getInitialState() {
 		return {
-			loading: false,
+			loading: true,
 			me:      null,
 			games:   [],
 			gameRef: null,
@@ -176,12 +176,11 @@ let TicTacticsTools = React.createClass({
 						gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key()),
 					});
 				});
-
-				this.setState({loading: false});
 			} else {
 				// @TODO: clean up all firebase stuff
 				this.setState(this.getInitialState());
 			}
+			this.setState({loading: false});
 		});
 	},
 
@@ -285,6 +284,9 @@ let TicTacticsTools = React.createClass({
 				}
 				</ul>
 			</aside>
+			<div className="loader">
+				<img src="loading.svg" />
+			</div>
 		</div>
 	},
 });
