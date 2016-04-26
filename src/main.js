@@ -212,6 +212,7 @@ let TicTacticsTools = React.createClass({
 			});
 		}
 		this.setState({
+			loading: false,
 			gameRef: this.firebaseRefs.games.child(gameId),
 		}, callback);
 	},
@@ -251,7 +252,7 @@ let TicTacticsTools = React.createClass({
 							<div className="flex-grow flex-row">
 								<div className="swipeable">Screenshot</div>
 							</div>
-							<ImageScanner onImageScanned={gameData => this.createGame(gameData)} />
+							<ImageScanner onImageChange={e => this.setState({loading: true})} onImageScanned={gameData => this.createGame(gameData)} />
 						</div>
 					</li>
 				}
@@ -538,6 +539,7 @@ let Tile = React.createClass({
 let ImageScanner = React.createClass({
 	getDefaultProps() {
 		return {
+			onImageChange: file => {},
 			onImageScanned: gameData => {},
 		};
 	},
@@ -639,6 +641,8 @@ let ImageScanner = React.createClass({
 		};
 		reader.onerror = err => alert(err);
 		reader.readAsDataURL(e.target.files[0]);
+
+		this.props.onImageChange(e.target.files[0]);
 	},
 
 	render() {

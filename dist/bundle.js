@@ -234,6 +234,7 @@ var TicTacticsTools = React.createClass({
 			});
 		}
 		this.setState({
+			loading: false,
 			gameRef: this.firebaseRefs.games.child(gameId)
 		}, callback);
 	},
@@ -303,7 +304,9 @@ var TicTacticsTools = React.createClass({
 									'Screenshot'
 								)
 							),
-							React.createElement(ImageScanner, { onImageScanned: function onImageScanned(gameData) {
+							React.createElement(ImageScanner, { onImageChange: function onImageChange(e) {
+									return _this5.setState({ loading: true });
+								}, onImageScanned: function onImageScanned(gameData) {
 									return _this5.createGame(gameData);
 								} })
 						)
@@ -687,6 +690,7 @@ var ImageScanner = React.createClass({
 	displayName: 'ImageScanner',
 	getDefaultProps: function getDefaultProps() {
 		return {
+			onImageChange: function onImageChange(file) {},
 			onImageScanned: function onImageScanned(gameData) {}
 		};
 	},
@@ -797,6 +801,8 @@ var ImageScanner = React.createClass({
 			return alert(err);
 		};
 		reader.readAsDataURL(e.target.files[0]);
+
+		this.props.onImageChange(e.target.files[0]);
 	},
 	render: function render() {
 		return React.createElement('input', { type: 'file', accepts: 'image/png', onChange: this.handleUpload });
