@@ -246,18 +246,18 @@ figure {
 .board:nth-child(2n) .tile {
 	background-color: #a7a7a7;
 }
-.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
+.board.active .tile:not(.blocked):not(.blue):not(.red) {
 	-webkit-transform: translate(16px, -16px);
 	        transform: translate(16px, -16px);
 	cursor: pointer;
 }
-.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before,
-	.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+.board.active .tile:not(.blocked):not(.blue):not(.red):before,
+	.board.active .tile:not(.blocked):not(.blue):not(.red):after {
 	content: "";
 	position: absolute;
 	pointer-events: none;
 }
-.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):before {
+.board.active .tile:not(.blocked):not(.blue):not(.red):before {
 	left: -16px;
 	top: 0;
 	bottom: -16px;
@@ -265,7 +265,7 @@ figure {
 	border-top: solid 16px transparent;
 	border-right: solid 16px #717170;
 }
-.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active):after {
+.board.active .tile:not(.blocked):not(.blue):not(.red):after {
 	left: -16px;
 	bottom: -16px;
 	right: 0;
@@ -344,7 +344,7 @@ figure {
 		height: calc(33.333% - var(--tile-spacing));
 		margin: calc(var(--tile-spacing) / 2);
 	}
-	.board.active .tile:not(.blocked):not(.blue):not(.red):not(:active) {
+	.board.active .tile:not(.blocked):not(.blue):not(.red) {
 		@mixin raise calc(var(--tile-raise) / 2);
 	}
 }*/
@@ -508,18 +508,18 @@ figure {
 	-webkit-transform: translate3d(0, 0, 0);
 	        transform: translate3d(0, 0, 0);
 }
-.gameitem:not(:active):not(.new) {}
-.gameitem:not(:active):not(.new) > * {
+.gameitem:not(.new) {}
+.gameitem:not(.new) > * {
 	-webkit-transform: translate(8px, -8px);
 	        transform: translate(8px, -8px);
 }
-.gameitem:not(:active):not(.new) > *:before,
-	.gameitem:not(:active):not(.new) > *:after {
+.gameitem:not(.new) > *:before,
+	.gameitem:not(.new) > *:after {
 	content: "";
 	position: absolute;
 	pointer-events: none;
 }
-.gameitem:not(:active):not(.new) > *:before {
+.gameitem:not(.new) > *:before {
 	left: -8px;
 	top: 0;
 	bottom: -8px;
@@ -527,7 +527,7 @@ figure {
 	border-top: solid 8px transparent;
 	border-right: solid 8px #717170;
 }
-.gameitem:not(:active):not(.new) > *:after {
+.gameitem:not(.new) > *:after {
 	left: -8px;
 	bottom: -8px;
 	right: 0;
@@ -535,7 +535,6 @@ figure {
 	border-right: solid 8px transparent;
 	border-top: solid 8px #717170;
 }
-.gameitem:not(.new) {}
 .gameitem:not(.new) .swipeable {
 	position: relative;
 }
@@ -577,32 +576,6 @@ figure {
 	font-size: 3em;
 	margin: 8px;
 }
-.gameitem.new:not(:active) {
-	-webkit-transform: translate(8px, -8px);
-	        transform: translate(8px, -8px);
-}
-.gameitem.new:not(:active):before,
-	.gameitem.new:not(:active):after {
-	content: "";
-	position: absolute;
-	pointer-events: none;
-}
-.gameitem.new:not(:active):before {
-	left: -8px;
-	top: 0;
-	bottom: -8px;
-	width: 0;
-	border-top: solid 8px transparent;
-	border-right: solid 8px rgb(0, 158, 176);
-}
-.gameitem.new:not(:active):after {
-	left: -8px;
-	bottom: -8px;
-	right: 0;
-	height: 0;
-	border-right: solid 8px transparent;
-	border-top: solid 8px rgb(0, 158, 176);
-}
 
 .btn {
 	-webkit-appearance: none;
@@ -638,10 +611,6 @@ figure {
 
 .btn:not(:disabled).green-faded {
 	background-color: #76D380;
-}
-
-.btn:not(:disabled):active {
-	border-width: 5px;
 }
 button {
 	cursor: pointer;
