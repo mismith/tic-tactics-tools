@@ -626,6 +626,66 @@ figure {
 	font-size: 100px;
 	opacity: 0;
 }
+.gameitem.new.red {
+	-webkit-transform: translate(8px, -8px);
+	        transform: translate(8px, -8px);
+	background-color: #fe392e;
+}
+.gameitem.new.red:before,
+	.gameitem.new.red:after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+.gameitem.new.red:before {
+	left: -8px;
+	top: 0;
+	bottom: -8px;
+	width: 0;
+	border-top: solid 8px transparent;
+	border-right: solid 8px rgb(217, 54, 46);
+}
+.gameitem.new.red:after {
+	left: -8px;
+	bottom: -8px;
+	right: 0;
+	height: 0;
+	border-right: solid 8px transparent;
+	border-top: solid 8px rgb(217, 54, 46);
+}
+.gameitem.new.red .swipeable {
+	color: #fe392e;
+}
+.gameitem.new.facebook {
+	-webkit-transform: translate(8px, -8px);
+	        transform: translate(8px, -8px);
+	background-color: #3b5998;
+}
+.gameitem.new.facebook:before,
+	.gameitem.new.facebook:after {
+	content: "";
+	position: absolute;
+	pointer-events: none;
+}
+.gameitem.new.facebook:before {
+	left: -8px;
+	top: 0;
+	bottom: -8px;
+	width: 0;
+	border-top: solid 8px transparent;
+	border-right: solid 8px rgb(59, 76, 115);
+}
+.gameitem.new.facebook:after {
+	left: -8px;
+	bottom: -8px;
+	right: 0;
+	height: 0;
+	border-right: solid 8px transparent;
+	border-top: solid 8px rgb(59, 76, 115);
+}
+.gameitem.new.facebook .swipeable {
+	color: #3b5998;
+}
 
 .btn {
 	-webkit-appearance: none;

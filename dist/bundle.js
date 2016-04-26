@@ -256,18 +256,31 @@ var TicTacticsTools = React.createClass({
 				'aside',
 				{ id: 'sidebar' },
 				React.createElement(
-					'header',
-					null,
-					React.createElement(
-						'button',
-						{ hidden: this.state.me, onClick: this.login },
-						'Login with Facebook'
-					)
-				),
-				React.createElement(
 					'ul',
 					{ className: 'gameitems' },
-					React.createElement(
+					!this.state.me && React.createElement(
+						'li',
+						{ className: 'gameitem new facebook', onClick: this.login },
+						React.createElement(
+							'div',
+							{ className: 'flex-row flex-grow' },
+							React.createElement(
+								'figure',
+								null,
+								React.createElement('img', { src: 'icons/facebook.svg' })
+							),
+							React.createElement(
+								'div',
+								{ className: 'flex-grow flex-row' },
+								React.createElement(
+									'div',
+									{ className: 'swipeable' },
+									'Login'
+								)
+							)
+						)
+					),
+					this.state.me && React.createElement(
 						'li',
 						{ className: 'gameitem new' },
 						React.createElement(
@@ -292,7 +305,7 @@ var TicTacticsTools = React.createClass({
 								} })
 						)
 					),
-					React.createElement(
+					this.state.me && React.createElement(
 						'li',
 						{ className: 'gameitem new', onClick: this.pickGame.bind(this, null, null) },
 						React.createElement(
@@ -322,15 +335,28 @@ var TicTacticsTools = React.createClass({
 							}, onDelete: function onDelete(e) {
 								return _this5.deleteGame(game['.key']);
 							} });
-					})
-				),
-				React.createElement(
-					'footer',
-					null,
-					React.createElement(
-						'button',
-						{ hidden: !this.state.me, onClick: this.logout },
-						'Logout'
+					}),
+					this.state.me && React.createElement(
+						'li',
+						{ className: 'gameitem new red', onClick: this.logout },
+						React.createElement(
+							'div',
+							{ className: 'flex-row flex-grow' },
+							React.createElement(
+								'figure',
+								null,
+								React.createElement('img', { src: 'icons/logout.svg' })
+							),
+							React.createElement(
+								'div',
+								{ className: 'flex-grow flex-row' },
+								React.createElement(
+									'div',
+									{ className: 'swipeable' },
+									'Logout'
+								)
+							)
+						)
 					)
 				)
 			)

@@ -226,10 +226,20 @@ let TicTacticsTools = React.createClass({
 				<Game gameRef={this.state.gameRef} me={this.state.me} />
 			</div>
 			<aside id="sidebar">
-				<header>
-					<button hidden={this.state.me} onClick={this.login}>Login with Facebook</button>
-				</header>
 				<ul className="gameitems">
+				{!this.state.me && 
+					<li className="gameitem new facebook" onClick={this.login}>
+						<div className="flex-row flex-grow">
+							<figure>
+								<img src="icons/facebook.svg" />
+							</figure>
+							<div className="flex-grow flex-row">
+								<div className="swipeable">Login</div>
+							</div>
+						</div>
+					</li>
+				}
+				{this.state.me &&
 					<li className="gameitem new">
 						<div className="flex-row flex-grow">
 							<figure>
@@ -241,6 +251,8 @@ let TicTacticsTools = React.createClass({
 							<ImageScanner onImageScanned={gameData => this.createGame(gameData)} />
 						</div>
 					</li>
+				}
+				{this.state.me &&
 					<li className="gameitem new" onClick={this.pickGame.bind(this, null, null)}>
 						<div className="flex-row flex-grow">
 							<figure>
@@ -251,13 +263,23 @@ let TicTacticsTools = React.createClass({
 							</div>
 						</div>
 					</li>
+				}
 				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
 					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
 				)}
+				{this.state.me && 
+					<li className="gameitem new red" onClick={this.logout}>
+						<div className="flex-row flex-grow">
+							<figure>
+								<img src="icons/logout.svg" />
+							</figure>
+							<div className="flex-grow flex-row">
+								<div className="swipeable">Logout</div>
+							</div>
+						</div>
+					</li>
+				}
 				</ul>
-				<footer>
-					<button hidden={!this.state.me} onClick={this.logout}>Logout</button>
-				</footer>
 			</aside>
 		</div>
 	},
