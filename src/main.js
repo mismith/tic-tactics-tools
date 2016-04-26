@@ -138,6 +138,7 @@ let TicTacticsTools = React.createClass({
 	],
 	getInitialState() {
 		return {
+			loading: false,
 			me:      null,
 			games:   [],
 			gameRef: null,
@@ -175,6 +176,8 @@ let TicTacticsTools = React.createClass({
 						gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key()),
 					});
 				});
+
+				this.setState({loading: false});
 			} else {
 				// @TODO: clean up all firebase stuff
 				this.setState(this.getInitialState());
@@ -183,6 +186,7 @@ let TicTacticsTools = React.createClass({
 	},
 
 	login() {
+		this.setState({loading: true});
 		this.firebase.authWithOAuthPopup('facebook', err => {
 			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
 				this.firebase.authWithOAuthRedirect('facebook', err => {
@@ -221,7 +225,7 @@ let TicTacticsTools = React.createClass({
 	},
 
 	render() {
-		return <div id="container">
+		return <div id="container" className={this.state.loading ? 'loading' : ''}>
 			<div id="game">
 				<Game gameRef={this.state.gameRef} me={this.state.me} />
 			</div>
@@ -305,7 +309,7 @@ let GameItem = React.createClass({
 				<MegaBoard className="mini" {...game} />
 			</figure>
 			<div className="flex-grow flex-row">
-				<Swipeable className="swipeable" onSwipeLeft={e => this.setState({deleting: true})} onSwipeRight={e => this.setState({deleting: false})}>
+				<Swipeable className="swipeable" threshold={200} onSwipeLeft={e => this.setState({deleting: true})} onSwipeRight={e => this.setState({deleting: false})}>
 					<div className="flex-grow flex-column flex-justify-center">
 						<span>{game.opponent || 'Opponent'}</span>
 						<time datetime={game.updated || game.created} title={game.updated || game.created}>

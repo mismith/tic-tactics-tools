@@ -1,0 +1,32 @@
+
+<svg width="142px" height="142px" viewBox="0 0 142 142" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<style>
+		@keyframes fade {
+			50% {
+				fill: rgba(255,255,255,255);
+			}
+		}
+		.square {
+			fill: rgba(255,255,255,.25);
+			animation: fade 1.5s infinite linear;
+		}
+		.col2 {
+			animation-delay: .333s;
+		}
+		.col3 {
+			animation-delay: .666s;
+		}
+	</style>
+    <g>
+        <rect fill="#FE9822" x="0" y="0" width="142" height="142"></rect>
+        <rect class="square col1" x="24" y="57" width="29" height="29"></rect>
+        <rect class="square col1" x="24" y="24" width="29" height="29"></rect>
+        <rect class="square col1" x="24" y="90" width="29" height="29"></rect>
+        <rect class="square col2" x="57" y="57" width="29" height="29"></rect>
+        <rect class="square col2" x="57" y="24" width="29" height="29"></rect>
+        <rect class="square col2" x="57" y="90" width="29" height="29"></rect>
+        <rect class="square col3" x="90" y="57" width="29" height="29"></rect>
+        <rect class="square col3" x="90" y="24" width="29" height="29"></rect>
+        <rect class="square col3" x="90" y="90" width="29" height="29"></rect>
+    </g>
+</svg>

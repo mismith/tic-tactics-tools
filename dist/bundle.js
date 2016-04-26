@@ -154,6 +154,7 @@ var TicTacticsTools = React.createClass({
 	mixins: [ReactFireMixin],
 	getInitialState: function getInitialState() {
 		return {
+			loading: false,
 			me: null,
 			games: [],
 			gameRef: null
@@ -192,6 +193,8 @@ var TicTacticsTools = React.createClass({
 							gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key())
 						});
 					});
+
+					_this2.setState({ loading: false });
 				})();
 			} else {
 				// @TODO: clean up all firebase stuff
@@ -202,6 +205,7 @@ var TicTacticsTools = React.createClass({
 	login: function login() {
 		var _this3 = this;
 
+		this.setState({ loading: true });
 		this.firebase.authWithOAuthPopup('facebook', function (err) {
 			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
 				_this3.firebase.authWithOAuthRedirect('facebook', function (err) {
@@ -246,7 +250,7 @@ var TicTacticsTools = React.createClass({
 
 		return React.createElement(
 			'div',
-			{ id: 'container' },
+			{ id: 'container', className: this.state.loading ? 'loading' : '' },
 			React.createElement(
 				'div',
 				{ id: 'game' },
@@ -399,7 +403,7 @@ var GameItem = React.createClass({
 				{ className: 'flex-grow flex-row' },
 				React.createElement(
 					Swipeable,
-					{ className: 'swipeable', onSwipeLeft: function onSwipeLeft(e) {
+					{ className: 'swipeable', threshold: 200, onSwipeLeft: function onSwipeLeft(e) {
 							return _this6.setState({ deleting: true });
 						}, onSwipeRight: function onSwipeRight(e) {
 							return _this6.setState({ deleting: false });
