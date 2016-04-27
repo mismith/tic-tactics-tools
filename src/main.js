@@ -66,7 +66,7 @@ let Swipeable = React.createClass({
 	},
 
 	render() {
-		return <div onMouseDown={this.handleStart} onTouchStart={this.handleStart} {...this.props}>
+		return <div {...this.props} onMouseDown={this.handleStart} onTouchStart={this.handleStart}>
 			{this.props.children}
 		</div>
 	},
@@ -123,7 +123,6 @@ Defaults.game = function(overrides = {}){
 		boards: Defaults.boards(),
 		turns: [],
 		canChooseAnyTile: null,
-		previous: null,
 		turn: 'blue',
 		blue: 'x',
 		red: 'o',
@@ -307,9 +306,9 @@ let GameItem = React.createClass({
 	render() {
 		let {game, isActive, className, ...props} = this.props;
 
-		return <li className={`gameitem ${isActive ? 'active' : ''} ${this.state.deleting ? 'deleting' : ''} ${className}`} {...props}>
+		return <li {...props} className={`gameitem ${isActive ? 'active' : ''} ${this.state.deleting ? 'deleting' : ''} ${className}`}>
 			<figure>
-				<MegaBoard className="mini" {...game} />
+				<MegaBoard {...game} className="mini" />
 			</figure>
 			<div className="flex-grow flex-row">
 				<Swipeable className="swipeable" threshold={200} onSwipeLeft={e => this.setState({deleting: true})} onSwipeRight={e => this.setState({deleting: false})}>
@@ -334,6 +333,7 @@ let Game = React.createClass({
 	getInitialState() {
 		return {
 			game: Defaults.game(),
+			t: -1,
 		};
 	},
 
@@ -345,7 +345,10 @@ let Game = React.createClass({
 	componentWillReceiveProps(nextProps) {
 		if (this.props.gameRef !== nextProps.gameRef) {
 			if (this.firebaseRefs.game) this.unbind('game');
-			if (nextProps.gameRef) this.bindAsObject(nextProps.gameRef, 'game');
+			if (nextProps.gameRef) {
+				this.setState(this.getInitialState());
+				this.bindAsObject(nextProps.gameRef, 'game');
+			}
 		}
 	},
 
@@ -376,6 +379,17 @@ let Game = React.createClass({
 
 			game.boards[i].tiles[j] = newPlayer;
 		} else {
+			if (this.state.t >= 0) {
+				var removedTurns = game.turns.splice(this.state.t);
+
+				removedTurns.map(turn => {
+					let [i, j] = turn;
+					game.boards[i].tiles[j] = null;
+				});
+
+				this.state.t = -1;
+			}
+
 			// make a turn
 			game.canChooseAnyTile = null;
 			if (previous) {
@@ -391,7 +405,6 @@ let Game = React.createClass({
 			}
 			game.boards[i].tiles[j] = game.turn;
 			game.turns.push(i + j);
-			game.previous = i + j;
 			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
 		game.$dirty = true;
@@ -400,7 +413,20 @@ let Game = React.createClass({
 
 	render() {
 		let {me, className, ...props} = this.props,
-			game = Defaults.game(this.state.game);
+			game = Defaults.game(this.state.game),
+			{boards: origBoards, turns: origTurns, ...gameData} = game;
+
+		let t        = this.state.t < 0 ? origTurns.length : this.state.t,
+			turns    = origTurns.slice(0, Math.max(1, Math.min(t, origTurns.length))),
+			previous = turns[turns.length - 1],
+			boards   = Defaults.boards();
+
+		// only show tiles up to active turn
+		_.map(origBoards, (board, i) => {
+			_.map(board.tiles, (tile, j) => {
+				boards[i].tiles[j] = origTurns.indexOf(i + j) < 0 ? tile : (turns.indexOf(i + j) >= 0 ? tile : false);
+			});
+		});
 
 		return <div className={`gameview ${className}`}>
 			<header>
@@ -414,11 +440,23 @@ let Game = React.createClass({
 					<span className="btn mini avatar red" style={{backgroundImage: `url(avatar.svg)`}}></span>
 				</div>
 			</header>
-			<MegaBoard onClick={this.handleClick} {...game} />
+			<MegaBoard {...gameData} boards={boards} previous={previous} onClick={this.handleClick} />
 			<footer>
-				<button className="btn green-faded" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleSave}>
-					<img src="icons/check.svg" height="32" />
-				</button>
+				<div>
+					<button className="btn red-faded" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleCancel}>
+						<img src="icons/double-chevron-left.svg" height="32" />
+					</button>
+				</div>
+				<div>
+					<button disabled={t <= 1} className="btn" onClick={e => this.setState({t: t - 1})}>&larr;</button>
+					<output>{t} / {origTurns.length}</output>
+					<button disabled={t >= origTurns.length} className="btn" onClick={e => this.setState({t: t + 1})}>&rarr;</button>
+				</div>
+				<div>
+					<button className="btn green-faded" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleSave}>
+						<img src="icons/check.svg" height="32" />
+					</button>
+				</div>
 			</footer>
 		</div>
 	},
@@ -437,7 +475,7 @@ let MegaBoard = React.createClass({
 
 		return <div className={`megaboard ${className}`}>
 		{mapInOrder(boards, (board, i) =>
-			<Board key={i} i={i} tiles={board.tiles} {...props} />
+			<Board key={i} {...props} i={i} tiles={board.tiles} />
 		)}
 		</div>
 	},
@@ -448,6 +486,7 @@ let Board = React.createClass({
 		return {
 			tiles: Defaults.tiles(),
 			i: 'A',
+			previous: null,
 			blue: 'x',
 			red: 'o',
 			onClick: () => {},
@@ -500,6 +539,7 @@ let Board = React.createClass({
 		{mapInOrder(tiles, (tile, j) =>
 			<Tile
 				key={j}
+				{...props}
 				player={tile || null}
 				letter={tile === 'blue' ? blue : (tile === 'red' ? red : false)}
 				isPrevious={i + j === previous}
@@ -509,7 +549,6 @@ let Board = React.createClass({
 				}
 				onClick={onClick.bind(null, i, j, tile, previous)}
 				style={{zIndex: 3-zIndex++%3}}
-				{...props}
 			/>
 		)}
 		</div>
@@ -527,7 +566,7 @@ let Tile = React.createClass({
 	render() {
 		let {player, letter, isPrevious, isBlocked, className, ...props} = this.props;
 
-		return <span className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''} ${className}`} onContextMenu={this.props.onClick} {...props}>
+		return <span {...props} className={`tile ${player || 'none'} ${isPrevious ? 'previous' : ''} ${isBlocked ? 'blocked' : ''} ${className}`} onContextMenu={this.props.onClick}>
 		{letter &&
 			<img src={`icons/${letter}.svg`} />
 		}

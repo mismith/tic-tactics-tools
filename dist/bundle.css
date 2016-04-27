@@ -412,7 +412,9 @@ figure {
 	margin: 16px 16px 0;
 }
 
-.gameview > header > div, .gameview > footer > div {
+.gameview > header {}
+
+.gameview > header > div {
 	display: -webkit-box;
 	display: -webkit-flex;
 	display: -ms-flexbox;
@@ -435,9 +437,7 @@ figure {
 }
 
 .gameview > header > div input,
-			.gameview > header > div output,
-			.gameview > footer > div input,
-			.gameview > footer > div output {
+			.gameview > header > div output {
 	-webkit-box-flex: 1;
 	-webkit-flex-grow: 1;
 	    -ms-flex-positive: 1;
@@ -449,10 +449,14 @@ figure {
 }
 
 .gameview > footer {
-	-webkit-box-pack: end;
-	-webkit-justify-content: flex-end;
-	    -ms-flex-pack: end;
-	        justify-content: flex-end;
+	-webkit-box-pack: justify;
+	-webkit-justify-content: space-between;
+	    -ms-flex-pack: justify;
+	        justify-content: space-between;
+}
+
+.gameview > footer output {
+	margin: 16px;
 }
 .gameitems {
 	display: -webkit-box;
@@ -742,9 +746,9 @@ figure {
 }
 
 .btn.mini {
-	width: 50px;
-	height: 50px;
-	border-width: 5px;
+	width: 80px;
+	height: 80px;
+	border-width: 8px;
 }
 
 .btn:disabled {

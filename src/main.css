@@ -329,7 +329,8 @@ figure {
 		display: flex;
 		align-items: center;
 		margin: var(--raise) var(--raise) 0;
-
+	}
+	& > header {
 		& > div {
 			display: flex;
 			align-items: center;
@@ -348,7 +349,11 @@ figure {
 		}
 	}
 	& > footer {
-		justify-content: flex-end;
+		justify-content: space-between;
+
+		& output {
+			margin: var(--raise);
+		}
 	}
 }
 .gameitems {
@@ -516,9 +521,9 @@ figure {
 	outline: 0;
 
 	&.mini {
-		width: 50px;
-		height: 50px;
-		border-width: 5px;
+		width: 80px;
+		height: 80px;
+		border-width: 8px;
 	}
 	&:disabled {
 		opacity: .5;

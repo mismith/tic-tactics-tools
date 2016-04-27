@@ -1,5 +1,7 @@
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
@@ -79,7 +81,7 @@ var Swipeable = React.createClass({
 	render: function render() {
 		return React.createElement(
 			'div',
-			_extends({ onMouseDown: this.handleStart, onTouchStart: this.handleStart }, this.props),
+			_extends({}, this.props, { onMouseDown: this.handleStart, onTouchStart: this.handleStart }),
 			this.props.children
 		);
 	}
@@ -141,7 +143,6 @@ Defaults.game = function () {
 		boards: Defaults.boards(),
 		turns: [],
 		canChooseAnyTile: null,
-		previous: null,
 		turn: 'blue',
 		blue: 'x',
 		red: 'o'
@@ -399,11 +400,11 @@ var GameItem = React.createClass({
 
 		return React.createElement(
 			'li',
-			_extends({ className: 'gameitem ' + (isActive ? 'active' : '') + ' ' + (this.state.deleting ? 'deleting' : '') + ' ' + className }, props),
+			_extends({}, props, { className: 'gameitem ' + (isActive ? 'active' : '') + ' ' + (this.state.deleting ? 'deleting' : '') + ' ' + className }),
 			React.createElement(
 				'figure',
 				null,
-				React.createElement(MegaBoard, _extends({ className: 'mini' }, game))
+				React.createElement(MegaBoard, _extends({}, game, { className: 'mini' }))
 			),
 			React.createElement(
 				'div',
@@ -446,7 +447,8 @@ var Game = React.createClass({
 	mixins: [ReactFireMixin],
 	getInitialState: function getInitialState() {
 		return {
-			game: Defaults.game()
+			game: Defaults.game(),
+			t: -1
 		};
 	},
 	componentWillMount: function componentWillMount() {
@@ -457,7 +459,10 @@ var Game = React.createClass({
 	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
 		if (this.props.gameRef !== nextProps.gameRef) {
 			if (this.firebaseRefs.game) this.unbind('game');
-			if (nextProps.gameRef) this.bindAsObject(nextProps.gameRef, 'game');
+			if (nextProps.gameRef) {
+				this.setState(this.getInitialState());
+				this.bindAsObject(nextProps.gameRef, 'game');
+			}
 		}
 	},
 	handleSave: function handleSave() {
@@ -486,6 +491,21 @@ var Game = React.createClass({
 
 			game.boards[i].tiles[j] = newPlayer;
 		} else {
+			if (this.state.t >= 0) {
+				var removedTurns = game.turns.splice(this.state.t);
+
+				removedTurns.map(function (turn) {
+					var _turn = _slicedToArray(turn, 2);
+
+					var i = _turn[0];
+					var j = _turn[1];
+
+					game.boards[i].tiles[j] = null;
+				});
+
+				this.state.t = -1;
+			}
+
 			// make a turn
 			game.canChooseAnyTile = null;
 			if (previous) {
@@ -502,7 +522,6 @@ var Game = React.createClass({
 			}
 			game.boards[i].tiles[j] = game.turn;
 			game.turns.push(i + j);
-			game.previous = i + j;
 			game.turn = game.turn === 'blue' ? 'red' : 'blue';
 		}
 		game.$dirty = true;
@@ -516,6 +535,22 @@ var Game = React.createClass({
 		var className = _props2.className;
 		var props = _objectWithoutProperties(_props2, ['me', 'className']);
 		var game = Defaults.game(this.state.game);
+		var origBoards = game.boards;
+		var origTurns = game.turns;
+
+		var gameData = _objectWithoutProperties(game, ['boards', 'turns']);
+
+		var t = this.state.t < 0 ? origTurns.length : this.state.t,
+		    turns = origTurns.slice(0, Math.max(1, Math.min(t, origTurns.length))),
+		    previous = turns[turns.length - 1],
+		    boards = Defaults.boards();
+
+		// only show tiles up to active turn
+		_.map(origBoards, function (board, i) {
+			_.map(board.tiles, function (tile, j) {
+				boards[i].tiles[j] = origTurns.indexOf(i + j) < 0 ? tile : turns.indexOf(i + j) >= 0 ? tile : false;
+			});
+		});
 
 		return React.createElement(
 			'div',
@@ -545,14 +580,52 @@ var Game = React.createClass({
 					React.createElement('span', { className: 'btn mini avatar red', style: { backgroundImage: 'url(avatar.svg)' } })
 				)
 			),
-			React.createElement(MegaBoard, _extends({ onClick: this.handleClick }, game)),
+			React.createElement(MegaBoard, _extends({}, gameData, { boards: boards, previous: previous, onClick: this.handleClick })),
 			React.createElement(
 				'footer',
 				null,
 				React.createElement(
-					'button',
-					{ className: 'btn green-faded', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleSave },
-					React.createElement('img', { src: 'icons/check.svg', height: '32' })
+					'div',
+					null,
+					React.createElement(
+						'button',
+						{ className: 'btn red-faded', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleCancel },
+						React.createElement('img', { src: 'icons/double-chevron-left.svg', height: '32' })
+					)
+				),
+				React.createElement(
+					'div',
+					null,
+					React.createElement(
+						'button',
+						{ disabled: t <= 1, className: 'btn', onClick: function onClick(e) {
+								return _this7.setState({ t: t - 1 });
+							} },
+						'←'
+					),
+					React.createElement(
+						'output',
+						null,
+						t,
+						' / ',
+						origTurns.length
+					),
+					React.createElement(
+						'button',
+						{ disabled: t >= origTurns.length, className: 'btn', onClick: function onClick(e) {
+								return _this7.setState({ t: t + 1 });
+							} },
+						'→'
+					)
+				),
+				React.createElement(
+					'div',
+					null,
+					React.createElement(
+						'button',
+						{ className: 'btn green-faded', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleSave },
+						React.createElement('img', { src: 'icons/check.svg', height: '32' })
+					)
 				)
 			)
 		);
@@ -579,7 +652,7 @@ var MegaBoard = React.createClass({
 			'div',
 			{ className: 'megaboard ' + className },
 			mapInOrder(boards, function (board, i) {
-				return React.createElement(Board, _extends({ key: i, i: i, tiles: board.tiles }, props));
+				return React.createElement(Board, _extends({ key: i }, props, { i: i, tiles: board.tiles }));
 			})
 		);
 	}
@@ -591,6 +664,7 @@ var Board = React.createClass({
 		return {
 			tiles: Defaults.tiles(),
 			i: 'A',
+			previous: null,
 			blue: 'x',
 			red: 'o',
 			onClick: function onClick() {}
@@ -643,7 +717,8 @@ var Board = React.createClass({
 			{ className: 'board ' + this.getClassName() },
 			mapInOrder(tiles, function (tile, j) {
 				return React.createElement(Tile, _extends({
-					key: j,
+					key: j
+				}, props, {
 					player: tile || null,
 					letter: tile === 'blue' ? blue : tile === 'red' ? red : false,
 					isPrevious: i + j === previous,
@@ -654,7 +729,7 @@ var Board = React.createClass({
 					,
 					onClick: onClick.bind(null, i, j, tile, previous),
 					style: { zIndex: 3 - zIndex++ % 3 }
-				}, props));
+				}));
 			})
 		);
 	}
@@ -680,7 +755,7 @@ var Tile = React.createClass({
 
 		return React.createElement(
 			'span',
-			_extends({ className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') + ' ' + className, onContextMenu: this.props.onClick }, props),
+			_extends({}, props, { className: 'tile ' + (player || 'none') + ' ' + (isPrevious ? 'previous' : '') + ' ' + (isBlocked ? 'blocked' : '') + ' ' + className, onContextMenu: this.props.onClick }),
 			letter && React.createElement('img', { src: 'icons/' + letter + '.svg' })
 		);
 	}
