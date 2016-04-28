@@ -230,6 +230,9 @@ let TicTacticsTools = React.createClass({
 			</div>
 			<aside id="sidebar">
 				<ul className="gameitems">
+				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
+					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
+				)}
 				{!this.state.me && 
 					<li className="gameitem new facebook" onClick={this.login}>
 						<div className="flex-row flex-grow">
@@ -237,7 +240,7 @@ let TicTacticsTools = React.createClass({
 								<img src="icons/facebook.svg" />
 							</figure>
 							<div className="flex-grow flex-row">
-								<div className="swipeable">Login</div>
+								<div className="swipeable">Login with Facebook</div>
 							</div>
 						</div>
 					</li>
@@ -249,7 +252,7 @@ let TicTacticsTools = React.createClass({
 								<img src="icons/plus.svg" />
 							</figure>
 							<div className="flex-grow flex-row">
-								<div className="swipeable">Screenshot</div>
+								<div className="swipeable">Import Screenshot</div>
 							</div>
 							<ImageScanner onImageChange={e => this.setState({loading: true})} onImageScanned={gameData => this.createGame(gameData)} />
 						</div>
@@ -262,14 +265,11 @@ let TicTacticsTools = React.createClass({
 								<img src="icons/plus.svg" />
 							</figure>
 							<div className="flex-grow flex-row">
-								<div className="swipeable">New</div>
+								<div className="swipeable">New Game</div>
 							</div>
 						</div>
 					</li>
 				}
-				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
-					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
-				)}
 				{this.state.me && 
 					<li className="gameitem new red" onClick={this.logout}>
 						<div className="flex-row flex-grow">
@@ -352,6 +352,13 @@ let Game = React.createClass({
 		}
 	},
 
+	handleCancel() {
+		if (!this.props.gameRef) return;
+		
+		this.unbind('game');
+		this.setState(this.getInitialState());
+		this.bindAsObject(this.props.gameRef, 'game');
+	},
 	handleSave() {
 		if (!this.props.gameRef) return;
 
@@ -436,24 +443,24 @@ let Game = React.createClass({
 				</div>
 				<Tile className="turn-indicator btn" player={game.turn} letter={game.turn === 'blue' ? game.blue : game.red} onClick={e => this.setState({game: {...game, blue: game.red, red: game.blue}})} />
 				<div>
-					<input value={game.opponent || ''} placeholder="Opponent" size="8" onChange={e => this.setState({game: {...game, opponent: e.target.value}})} />
+					<input value={game.opponent || ''} placeholder="Opponent" size="8" onChange={e => this.setState({game: {...game, opponent: e.target.value, $dirty: true}})} />
 					<span className="btn mini avatar red" style={{backgroundImage: `url(avatar.svg)`}}></span>
 				</div>
 			</header>
 			<MegaBoard {...gameData} boards={boards} previous={previous} onClick={this.handleClick} />
 			<footer>
 				<div>
-					<button className="btn red-faded" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleCancel}>
-						<img src="icons/double-chevron-left.svg" height="32" />
+					<button className="btn red" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleCancel}>
+						<img src="icons/cancel.svg" height="36" />
 					</button>
 				</div>
 				<div>
-					<button disabled={t <= 1} className="btn" onClick={e => this.setState({t: t - 1})}>&larr;</button>
+					<button disabled={t <= 1} className="btn" onClick={e => this.setState({t: t - 1})}><img src="icons/chevron-left.svg" height="36" /></button>
 					<output>{t} / {origTurns.length}</output>
-					<button disabled={t >= origTurns.length} className="btn" onClick={e => this.setState({t: t + 1})}>&rarr;</button>
+					<button disabled={t >= origTurns.length} className="btn" onClick={e => this.setState({t: t + 1})}><img src="icons/chevron-right.svg" height="36" /></button>
 				</div>
 				<div>
-					<button className="btn green-faded" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleSave}>
+					<button className="btn green" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleSave}>
 						<img src="icons/check.svg" height="32" />
 					</button>
 				</div>

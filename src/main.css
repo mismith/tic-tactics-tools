@@ -352,6 +352,7 @@ figure {
 		justify-content: space-between;
 
 		& output {
+			font-size: 2em;
 			margin: var(--raise);
 		}
 	}
@@ -466,9 +467,10 @@ figure {
 				margin-right: 0;
 			}
 			& .swipeable {
+				justify-content: flex-end;
 				background-color: var(--bg);
 				color: var(--blue);
-				font-size: 3em;
+				font-size: 1.8em;
 				margin: var(--spacing);
 
 				& small {
@@ -530,8 +532,11 @@ figure {
 		cursor: no-drop;
 	}
 	&:not(:disabled) {
-		&.green-faded {
-			background-color: var(--green-faded);
+		&.red {
+			background-color: var(--red);
+		}
+		&.green {
+			background-color: var(--green);
 		}
 	}
 }
