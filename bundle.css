@@ -456,6 +456,7 @@ figure {
 }
 
 .gameview > footer output {
+	font-size: 2em;
 	margin: 16px;
 }
 .gameitems {
@@ -646,9 +647,13 @@ figure {
 	margin-right: 0;
 }
 .gameitem.new > div .swipeable {
+	-webkit-box-pack: end;
+	-webkit-justify-content: flex-end;
+	    -ms-flex-pack: end;
+	        justify-content: flex-end;
 	background-color: #e8e8e8;
 	color: #00c2d7;
-	font-size: 3em;
+	font-size: 1.8em;
 	margin: 8px;
 }
 .gameitem.new > div .swipeable small {
@@ -758,8 +763,12 @@ figure {
 
 .btn:not(:disabled) {}
 
-.btn:not(:disabled).green-faded {
-	background-color: #76D380;
+.btn:not(:disabled).red {
+	background-color: #fe392e;
+}
+
+.btn:not(:disabled).green {
+	background-color: #61bb1c;
 }
 button {
 	cursor: pointer;

@@ -263,6 +263,15 @@ var TicTacticsTools = React.createClass({
 				React.createElement(
 					'ul',
 					{ className: 'gameitems' },
+					this.state.games.sort(function (a, b) {
+						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
+					}).map(function (game) {
+						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this5.state.gameRef && _this5.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
+								return _this5.pickGame(game['.key']);
+							}, onDelete: function onDelete(e) {
+								return _this5.deleteGame(game['.key']);
+							} });
+					}),
 					!this.state.me && React.createElement(
 						'li',
 						{ className: 'gameitem new facebook', onClick: this.login },
@@ -280,7 +289,7 @@ var TicTacticsTools = React.createClass({
 								React.createElement(
 									'div',
 									{ className: 'swipeable' },
-									'Login'
+									'Login with Facebook'
 								)
 							)
 						)
@@ -302,7 +311,7 @@ var TicTacticsTools = React.createClass({
 								React.createElement(
 									'div',
 									{ className: 'swipeable' },
-									'Screenshot'
+									'Import Screenshot'
 								)
 							),
 							React.createElement(ImageScanner, { onImageChange: function onImageChange(e) {
@@ -329,20 +338,11 @@ var TicTacticsTools = React.createClass({
 								React.createElement(
 									'div',
 									{ className: 'swipeable' },
-									'New'
+									'New Game'
 								)
 							)
 						)
 					),
-					this.state.games.sort(function (a, b) {
-						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
-					}).map(function (game) {
-						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this5.state.gameRef && _this5.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
-								return _this5.pickGame(game['.key']);
-							}, onDelete: function onDelete(e) {
-								return _this5.deleteGame(game['.key']);
-							} });
-					}),
 					this.state.me && React.createElement(
 						'li',
 						{ className: 'gameitem new red', onClick: this.logout },
@@ -465,6 +465,13 @@ var Game = React.createClass({
 			}
 		}
 	},
+	handleCancel: function handleCancel() {
+		if (!this.props.gameRef) return;
+
+		this.unbind('game');
+		this.setState(this.getInitialState());
+		this.bindAsObject(this.props.gameRef, 'game');
+	},
 	handleSave: function handleSave() {
 		if (!this.props.gameRef) return;
 
@@ -575,7 +582,7 @@ var Game = React.createClass({
 					'div',
 					null,
 					React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent', size: '8', onChange: function onChange(e) {
-							return _this7.setState({ game: _extends({}, game, { opponent: e.target.value }) });
+							return _this7.setState({ game: _extends({}, game, { opponent: e.target.value, $dirty: true }) });
 						} }),
 					React.createElement('span', { className: 'btn mini avatar red', style: { backgroundImage: 'url(avatar.svg)' } })
 				)
@@ -589,8 +596,8 @@ var Game = React.createClass({
 					null,
 					React.createElement(
 						'button',
-						{ className: 'btn red-faded', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleCancel },
-						React.createElement('img', { src: 'icons/double-chevron-left.svg', height: '32' })
+						{ className: 'btn red', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleCancel },
+						React.createElement('img', { src: 'icons/cancel.svg', height: '36' })
 					)
 				),
 				React.createElement(
@@ -601,7 +608,7 @@ var Game = React.createClass({
 						{ disabled: t <= 1, className: 'btn', onClick: function onClick(e) {
 								return _this7.setState({ t: t - 1 });
 							} },
-						'←'
+						React.createElement('img', { src: 'icons/chevron-left.svg', height: '36' })
 					),
 					React.createElement(
 						'output',
@@ -615,7 +622,7 @@ var Game = React.createClass({
 						{ disabled: t >= origTurns.length, className: 'btn', onClick: function onClick(e) {
 								return _this7.setState({ t: t + 1 });
 							} },
-						'→'
+						React.createElement('img', { src: 'icons/chevron-right.svg', height: '36' })
 					)
 				),
 				React.createElement(
@@ -623,7 +630,7 @@ var Game = React.createClass({
 					null,
 					React.createElement(
 						'button',
-						{ className: 'btn green-faded', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleSave },
+						{ className: 'btn green', disabled: !game.$dirty || !game.opponent || !me, onClick: this.handleSave },
 						React.createElement('img', { src: 'icons/check.svg', height: '32' })
 					)
 				)
