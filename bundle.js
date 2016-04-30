@@ -606,7 +606,7 @@ var Game = React.createClass({
 					React.createElement(
 						'button',
 						{ disabled: t <= 1, className: 'btn', onClick: function onClick(e) {
-								return _this7.setState({ t: t - 1 });
+								return _this7.setState({ t: t - 1, game: _extends({}, game, { turn: game.turn === 'blue' ? 'red' : 'blue' }) });
 							} },
 						React.createElement('img', { src: 'icons/chevron-left.svg', height: '36' })
 					),
@@ -620,7 +620,7 @@ var Game = React.createClass({
 					React.createElement(
 						'button',
 						{ disabled: t >= origTurns.length, className: 'btn', onClick: function onClick(e) {
-								return _this7.setState({ t: t + 1 });
+								return _this7.setState({ t: t + 1, game: _extends({}, game, { turn: game.turn === 'blue' ? 'red' : 'blue' }) });
 							} },
 						React.createElement('img', { src: 'icons/chevron-right.svg', height: '36' })
 					)
