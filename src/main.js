@@ -455,9 +455,9 @@ let Game = React.createClass({
 					</button>
 				</div>
 				<div>
-					<button disabled={t <= 1} className="btn" onClick={e => this.setState({t: t - 1})}><img src="icons/chevron-left.svg" height="36" /></button>
+					<button disabled={t <= 1} className="btn" onClick={e => this.setState({t: t - 1, game: {...game, turn: game.turn === 'blue' ? 'red' : 'blue'}})}><img src="icons/chevron-left.svg" height="36" /></button>
 					<output>{t} / {origTurns.length}</output>
-					<button disabled={t >= origTurns.length} className="btn" onClick={e => this.setState({t: t + 1})}><img src="icons/chevron-right.svg" height="36" /></button>
+					<button disabled={t >= origTurns.length} className="btn" onClick={e => this.setState({t: t + 1, game: {...game, turn: game.turn === 'blue' ? 'red' : 'blue'}})}><img src="icons/chevron-right.svg" height="36" /></button>
 				</div>
 				<div>
 					<button className="btn green" disabled={!game.$dirty || !game.opponent || !me} onClick={this.handleSave}>
