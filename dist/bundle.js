@@ -187,6 +187,11 @@ var TicTacticsTools = React.createClass({
 					// games
 					var gamesRef = _this2.firebase.child('users:games').child(authData.uid);
 					_this2.bindAsArray(gamesRef, 'games');
+					gamesRef.once('value').then(function (snap) {
+						_this2.setState({
+							loading: false
+						});
+					});
 
 					// load most recent game (or a new one, if none found)
 					meRef.once('value').then(function (snap) {
@@ -198,8 +203,8 @@ var TicTacticsTools = React.createClass({
 			} else {
 				// @TODO: clean up all firebase stuff
 				_this2.setState(_this2.getInitialState());
+				_this2.setState({ loading: false });
 			}
-			_this2.setState({ loading: false });
 		});
 	},
 	login: function login() {
@@ -263,15 +268,6 @@ var TicTacticsTools = React.createClass({
 				React.createElement(
 					'ul',
 					{ className: 'gameitems' },
-					this.state.games.sort(function (a, b) {
-						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
-					}).map(function (game) {
-						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this5.state.gameRef && _this5.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
-								return _this5.pickGame(game['.key']);
-							}, onDelete: function onDelete(e) {
-								return _this5.deleteGame(game['.key']);
-							} });
-					}),
 					!this.state.me && React.createElement(
 						'li',
 						{ className: 'gameitem new facebook', onClick: this.login },
@@ -343,6 +339,15 @@ var TicTacticsTools = React.createClass({
 							)
 						)
 					),
+					this.state.games.sort(function (a, b) {
+						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
+					}).map(function (game) {
+						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this5.state.gameRef && _this5.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
+								return _this5.pickGame(game['.key']);
+							}, onDelete: function onDelete(e) {
+								return _this5.deleteGame(game['.key']);
+							} });
+					}),
 					this.state.me && React.createElement(
 						'li',
 						{ className: 'gameitem new red', onClick: this.logout },
@@ -860,6 +865,7 @@ var ImageScanner = React.createClass({
 			return {
 				created: new Date().toISOString(),
 				boards: boards,
+				turn: 'red', // most of the time you'll be using this tool when you have to decide where to play, so the last player to play will have been them (i.e. red)
 				blue: teams.x === 'blue' ? 'x' : 'o',
 				red: teams.o === 'red' ? 'o' : 'x'
 			};

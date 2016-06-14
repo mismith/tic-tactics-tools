@@ -168,6 +168,11 @@ let TicTacticsTools = React.createClass({
 				// games
 				let gamesRef = this.firebase.child('users:games').child(authData.uid);
 				this.bindAsArray(gamesRef, 'games');
+				gamesRef.once('value').then(snap => {
+					this.setState({
+						loading: false,
+					});
+				});
 
 				// load most recent game (or a new one, if none found)
 				meRef.once('value').then(snap => {
@@ -178,8 +183,8 @@ let TicTacticsTools = React.createClass({
 			} else {
 				// @TODO: clean up all firebase stuff
 				this.setState(this.getInitialState());
+				this.setState({loading: false});
 			}
-			this.setState({loading: false});
 		});
 	},
 
@@ -230,9 +235,6 @@ let TicTacticsTools = React.createClass({
 			</div>
 			<aside id="sidebar">
 				<ul className="gameitems">
-				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
-					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
-				)}
 				{!this.state.me && 
 					<li className="gameitem new facebook" onClick={this.login}>
 						<div className="flex-row flex-grow">
@@ -270,6 +272,9 @@ let TicTacticsTools = React.createClass({
 						</div>
 					</li>
 				}
+				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
+					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
+				)}
 				{this.state.me && 
 					<li className="gameitem new red" onClick={this.logout}>
 						<div className="flex-row flex-grow">
@@ -669,6 +674,7 @@ let ImageScanner = React.createClass({
 			return {
 				created: new Date().toISOString(),
 				boards,
+				turn: 'red', // most of the time you'll be using this tool when you have to decide where to play, so the last player to play will have been them (i.e. red)
 				blue: teams.x === 'blue' ? 'x' : 'o',
 				red: teams.o === 'red' ? 'o' : 'x',
 			};
