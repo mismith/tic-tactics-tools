@@ -44,44 +44,29 @@ figure {
 
 
 .flex-row {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
 }
 .flex-column {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	    -ms-flex-direction: column;
-	        flex-direction: column;
+	-ms-flex-direction: column;
+	    flex-direction: column;
 }
 .flex-justify-center {
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
+	-ms-flex-pack: center;
+	    justify-content: center;
 }
 .flex-align-center {
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	            -ms-grid-row-align: center;
-	        align-items: center;
+	-ms-flex-align: center;
+	    align-items: center;
 }
 .flex-grow {
-	-webkit-box-flex: 1;
-	-webkit-flex-grow: 1;
-	    -ms-flex-positive: 1;
-	        flex-grow: 1;
+	-ms-flex-positive: 1;
+	    flex-grow: 1;
 }
 .raise {
-	-webkit-transform: translate(8px, -8px);
-	        transform: translate(8px, -8px);
+	transform: translate(8px, -8px);
 }
 .raise:before,
 	.raise:after {
@@ -107,39 +92,27 @@ figure {
 }
 
 #app {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
 	width: 100%;
 	height: 100%;
 }
 #container {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-flex-wrap: wrap;
-	    -ms-flex-wrap: wrap;
-	        flex-wrap: wrap;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
+	-ms-flex-wrap: wrap;
+	    flex-wrap: wrap;
+	-ms-flex-pack: center;
+	    justify-content: center;
 	width: 100%;
 	height: 100%
 }
 #container .loader {
 	display: none;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	            -ms-grid-row-align: center;
-	        align-items: center;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
+	-ms-flex-align: center;
+	    align-items: center;
+	-ms-flex-pack: center;
+	    justify-content: center;
 	position: fixed;
 	top: 50%;
 	left: 50%;
@@ -149,8 +122,6 @@ figure {
 }
 #container.loading {}
 #container.loading .loader {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
 }
@@ -161,27 +132,21 @@ figure {
 	left: 0;
 	right: 0;
 	bottom: 0;
-	background-color: rgba(0,0,0,.5);
+	background-color: rgba(0, 0, 0, .5);
 	z-index: 500;
 }
 #game {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-justify-content: space-around;
-	    -ms-flex-pack: distribute;
-	        justify-content: space-around;
-	-webkit-box-flex: 1;
-	-webkit-flex-grow: 1;
-	    -ms-flex-positive: 1;
-	        flex-grow: 1;
+	-ms-flex-pack: distribute;
+	    justify-content: space-around;
+	-ms-flex-positive: 1;
+	    flex-grow: 1;
 }
 #sidebar {
 	min-width: 600px;
-	-webkit-flex-shrink: 0;
-	    -ms-flex-negative: 0;
-	        flex-shrink: 0;
+	-ms-flex-negative: 0;
+	    flex-shrink: 0;
 	padding: 16px;
 }
 @media (max-width: 1400px) {
@@ -190,18 +155,9 @@ figure {
 	}
 }
 
-@-webkit-keyframes previous-blue {
-	0% {   box-shadow: 0 0 0 0px rgba(0, 194, 215, 0.5); }
-	100% { box-shadow: 0 0 0 10px rgba(0, 194, 215, 0.5); }
-}
-
 @keyframes previous-blue {
 	0% {   box-shadow: 0 0 0 0px rgba(0, 194, 215, 0.5); }
 	100% { box-shadow: 0 0 0 10px rgba(0, 194, 215, 0.5); }
-}
-@-webkit-keyframes previous-red {
-	0% {   box-shadow: 0 0 0 0px rgba(254, 57, 46, 0.5); }
-	100% { box-shadow: 0 0 0 10px rgba(254, 57, 46, 0.5); }
 }
 @keyframes previous-red {
 	0% {   box-shadow: 0 0 0 0px rgba(254, 57, 46, 0.5); }
@@ -211,18 +167,12 @@ figure {
 	-webkit-appearance: none;
 	   -moz-appearance: none;
 	        appearance: none;
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	        align-items: center;
+	-ms-flex-pack: center;
+	    justify-content: center;
+	-ms-flex-align: center;
+	    align-items: center;
 	width: 100%;
 	height: 100%;
 	background-color: #cecece;
@@ -241,8 +191,7 @@ figure {
 	max-width: 66.666%;
 }
 .tile.blocked:not(.blue):not(.red) {
-	background-image: -webkit-repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
-	background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0,0,0,.25) 10px, rgba(0,0,0,.25) 20px);
+	background-image: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(0, 0, 0, .25) 10px, rgba(0, 0, 0, .25) 20px);
 	pointer-events: none;
 }
 .tile.blue {
@@ -250,25 +199,20 @@ figure {
 	color: white;
 }
 .tile.blue.previous {
-	-webkit-animation: previous-blue 750ms linear infinite;
-	        animation: previous-blue 750ms linear infinite;
+	animation: previous-blue 750ms linear infinite;
 }
 .tile.red {
 	background-color: #fe392e !important;
 	color: white;
 }
 .tile.red.previous {
-	-webkit-animation: previous-red 750ms linear infinite;
-	        animation: previous-red 750ms linear infinite;
+	animation: previous-red 750ms linear infinite;
 }
 .board {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-flex-wrap: wrap;
-	    -ms-flex-wrap: wrap;
-	        flex-wrap: wrap;
+	-ms-flex-wrap: wrap;
+	    flex-wrap: wrap;
 	width: 100%;
 	height: 100%
 }
@@ -282,8 +226,7 @@ figure {
 	background-color: #a7a7a7;
 }
 .board.active .tile:not(.blocked):not(.blue):not(.red) {
-	-webkit-transform: translate(16px, -16px);
-	        transform: translate(16px, -16px);
+	transform: translate(16px, -16px);
 	cursor: pointer;
 }
 .board.active .tile:not(.blocked):not(.blue):not(.red):before,
@@ -329,13 +272,10 @@ figure {
 	background-color: #8b4fda !important;
 }
 .megaboard {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-flex-wrap: wrap;
-	    -ms-flex-wrap: wrap;
-	        flex-wrap: wrap;
+	-ms-flex-wrap: wrap;
+	    flex-wrap: wrap;
 	width: 800px;
 	height: 800px;
 	padding: 8px
@@ -358,11 +298,9 @@ figure {
 .megaboard.mini .board .tile {
 	width: 33.333%;
 	height: 33.333%;
-	-webkit-transform: none !important;
-	        transform: none !important;
+	transform: none !important;
 	background-image: none !important;
-	-webkit-animation: none !important;
-	        animation: none !important;
+	animation: none !important;
 	pointer-events: auto !important;
 	cursor: inherit !important;
 	margin: 0;
@@ -385,15 +323,10 @@ figure {
 }*/
 
 .gameview {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	    -ms-flex-direction: column;
-	        flex-direction: column;
+	-ms-flex-direction: column;
+	    flex-direction: column;
 	width: 100%;
 	height: 100%;
 	max-width: 800px
@@ -401,47 +334,32 @@ figure {
 
 .gameview > header,
 	.gameview > footer {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	        align-items: center;
+	-ms-flex-align: center;
+	    align-items: center;
 	margin: 16px 16px 0;
 }
 
 .gameview > header {}
 
 .gameview > header > div {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	        align-items: center;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
-	-webkit-box-flex: 1;
-	-webkit-flex-grow: 1;
-	    -ms-flex-positive: 1;
-	        flex-grow: 1;
-	-webkit-flex-basis: 50%;
-	    -ms-flex-preferred-size: 50%;
-	        flex-basis: 50%;
+	-ms-flex-align: center;
+	    align-items: center;
+	-ms-flex-pack: center;
+	    justify-content: center;
+	-ms-flex-positive: 1;
+	    flex-grow: 1;
+	-ms-flex-preferred-size: 50%;
+	    flex-basis: 50%;
 }
 
 .gameview > header > div input,
 			.gameview > header > div output {
-	-webkit-box-flex: 1;
-	-webkit-flex-grow: 1;
-	    -ms-flex-positive: 1;
-	        flex-grow: 1;
+	-ms-flex-positive: 1;
+	    flex-grow: 1;
 	font: inherit;
 	font-size: 1.5em;
 	text-align: center;
@@ -449,10 +367,8 @@ figure {
 }
 
 .gameview > footer {
-	-webkit-box-pack: justify;
-	-webkit-justify-content: space-between;
-	    -ms-flex-pack: justify;
-	        justify-content: space-between;
+	-ms-flex-pack: justify;
+	    justify-content: space-between;
 }
 
 .gameview > footer output {
@@ -460,20 +376,13 @@ figure {
 	margin: 16px;
 }
 .gameitems {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-orient: vertical;
-	-webkit-box-direction: normal;
-	-webkit-flex-direction: column;
-	    -ms-flex-direction: column;
-	        flex-direction: column;
+	-ms-flex-direction: column;
+	    flex-direction: column;
 	padding: 0;
 }
 .gameitem {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
 	margin-bottom: 16px;
@@ -486,18 +395,12 @@ figure {
 }
 .gameitem .swipeable {
 	position: relative;
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	        align-items: center;
-	-webkit-box-flex: 1;
-	-webkit-flex-grow: 1;
-	    -ms-flex-positive: 1;
-	        flex-grow: 1;
+	-ms-flex-align: center;
+	    align-items: center;
+	-ms-flex-positive: 1;
+	    flex-grow: 1;
 	background: #a7a7a7;
 	color: white;
 	padding: 8px 16px;
@@ -507,18 +410,12 @@ figure {
 	font-size: 1.5em;
 }
 .gameitem .swipeable .delete {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	        align-items: center;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
+	-ms-flex-align: center;
+	    align-items: center;
+	-ms-flex-pack: center;
+	    justify-content: center;
 	position: absolute;
 	top: 0;
 	right: 0;
@@ -531,9 +428,7 @@ figure {
 	padding: 16px;
 	border-radius: 50% 0 0 50%;
 	border: 0;
-	-webkit-transform: translate3d(105%, 0, 0);
-	        transform: translate3d(105%, 0, 0);
-	-webkit-transition: all 300ms;
+	transform: translate3d(105%, 0, 0);
 	transition: all 300ms;
 	z-index: 2;
 }
@@ -555,13 +450,11 @@ figure {
 .gameitem.deleting {}
 .gameitem.deleting .swipeable {}
 .gameitem.deleting .swipeable .delete {
-	-webkit-transform: translate3d(0, 0, 0);
-	        transform: translate3d(0, 0, 0);
+	transform: translate3d(0, 0, 0);
 }
 .gameitem:not(.new) {}
 .gameitem:not(.new) > * {
-	-webkit-transform: translate(8px, -8px);
-	        transform: translate(8px, -8px);
+	transform: translate(8px, -8px);
 }
 .gameitem:not(.new) > *:before,
 	.gameitem:not(.new) > *:after {
@@ -598,8 +491,7 @@ figure {
 	opacity: .15;
 }
 .gameitem.new {
-	-webkit-transform: translate(8px, -8px);
-	        transform: translate(8px, -8px);
+	transform: translate(8px, -8px);
 	background-color: #00c2d7;
 	color: white;
 }
@@ -630,27 +522,19 @@ figure {
 	overflow: hidden;
 }
 .gameitem.new > div > figure {
-	display: -webkit-box;
-	display: -webkit-flex;
 	display: -ms-flexbox;
 	display: flex;
-	-webkit-box-pack: center;
-	-webkit-justify-content: center;
-	    -ms-flex-pack: center;
-	        justify-content: center;
-	-webkit-box-align: center;
-	-webkit-align-items: center;
-	    -ms-flex-align: center;
-	        align-items: center;
+	-ms-flex-pack: center;
+	    justify-content: center;
+	-ms-flex-align: center;
+	    align-items: center;
 	width: 150px;
 	height: 150px;
 	margin-right: 0;
 }
 .gameitem.new > div .swipeable {
-	-webkit-box-pack: end;
-	-webkit-justify-content: flex-end;
-	    -ms-flex-pack: end;
-	        justify-content: flex-end;
+	-ms-flex-pack: end;
+	    justify-content: flex-end;
 	background-color: #e8e8e8;
 	color: #00c2d7;
 	font-size: 1.8em;
@@ -671,8 +555,7 @@ figure {
 	opacity: 0;
 }
 .gameitem.new.red {
-	-webkit-transform: translate(8px, -8px);
-	        transform: translate(8px, -8px);
+	transform: translate(8px, -8px);
 	background-color: #fe392e;
 }
 .gameitem.new.red:before,
@@ -701,8 +584,7 @@ figure {
 	color: #fe392e;
 }
 .gameitem.new.facebook {
-	-webkit-transform: translate(8px, -8px);
-	        transform: translate(8px, -8px);
+	transform: translate(8px, -8px);
 	background-color: #3b5998;
 }
 .gameitem.new.facebook:before,
@@ -735,16 +617,15 @@ figure {
 	-webkit-appearance: none;
 	   -moz-appearance: none;
 	        appearance: none;
-	-webkit-flex-shrink: 0;
-	    -ms-flex-negative: 0;
-	        flex-shrink: 0;
+	-ms-flex-negative: 0;
+	    flex-shrink: 0;
 	width: 100px;
 	height: 100px;
 	background-color: #4d4d4d;
 	background-clip: border-box;
 	color: white;
 	padding: 0;
-	border: solid 10px rgba(255,255,255,.4);
+	border: solid 10px rgba(255, 255, 255, .4);
 	border-radius: 50%;
 	margin: 0;
 	outline: 0
