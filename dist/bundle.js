@@ -149,8 +149,8 @@ Defaults.game = function () {
 	});
 };
 
-var TicTacticsTools = React.createClass({
-	displayName: 'TicTacticsTools',
+var TicTools = React.createClass({
+	displayName: 'TicTools',
 
 	mixins: [ReactFireMixin],
 	getInitialState: function getInitialState() {
@@ -897,4 +897,4 @@ var ImageScanner = React.createClass({
 	}
 });
 
-ReactDOM.render(React.createElement(TicTacticsTools, null), document.getElementById('app'));
+ReactDOM.render(React.createElement(TicTools, null), document.getElementById('app'));

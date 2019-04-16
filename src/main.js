@@ -131,7 +131,7 @@ Defaults.game = function(overrides = {}){
 
 
 
-let TicTacticsTools = React.createClass({
+let TicTools = React.createClass({
 	mixins: [
 		ReactFireMixin,
 	],
@@ -704,6 +704,6 @@ let ImageScanner = React.createClass({
 
 
 ReactDOM.render(
-	<TicTacticsTools />,
+	<TicTools />,
 	document.getElementById('app')
 );
