@@ -6,6 +6,16 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
+var config = {
+	apiKey: 'AIzaSyCwAPZxgorwuqX_7gku1XD1UY3YbUyPbq4',
+	authDomain: 'mismith.firebaseapp.com',
+	databaseURL: 'https://mismith.firebaseio.com',
+	projectId: 'firebase-mismith',
+	storageBucket: 'firebase-mismith.appspot.com',
+	messagingSenderId: '668345313266'
+};
+firebase.initializeApp(config);
+
 function mapInOrder(obj, callback, context) {
 	var _this = this;
 
@@ -89,7 +99,7 @@ var Swipeable = React.createClass({
 
 var Defaults = {};
 Defaults.tiles = function () {
-	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	var overrides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
 	return _.defaultsDeep(overrides, {
 		a: null,
@@ -104,7 +114,7 @@ Defaults.tiles = function () {
 	});
 };
 Defaults.boards = function () {
-	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	var overrides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
 	return _.defaultsDeep(overrides, {
 		A: {
@@ -137,7 +147,7 @@ Defaults.boards = function () {
 	});
 };
 Defaults.game = function () {
-	var overrides = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	var overrides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
 	return _.defaultsDeep(overrides, {
 		boards: Defaults.boards(),
@@ -164,42 +174,40 @@ var TicTools = React.createClass({
 	componentWillMount: function componentWillMount() {
 		var _this2 = this;
 
-		this.firebase = new Firebase('https://mismith.firebaseio.com/tic-tactics-tools');
-		this.firebase.onAuth(function (authData) {
+		this.firebase = firebase.database().ref('tic-tools');
+		firebase.auth().onAuthStateChanged(function (authData) {
 			if (authData) {
-				(function () {
-					// user profile
-					var meRef = _this2.firebase.child('users').child(authData.uid);
-					meRef.update(_extends({}, authData[authData.provider], {
-						uid: authData.uid
-					}));
+				// user profile
+				var meRef = _this2.firebase.child('users').child(authData.uid);
+				meRef.update(_extends({}, authData[authData.provider], {
+					uid: authData.uid
+				}));
 
-					_this2.bindAsObject(meRef, 'me');
+				_this2.bindAsObject(meRef, 'me');
 
-					// online presence
-					_this2.firebase.root().child('.info/connected').on('value', function (snap) {
-						if (snap.val()) {
-							meRef.child('online').onDisconnect().set(new Date().toISOString());
-							meRef.child('online').set(true);
-						}
+				// online presence
+				_this2.firebase.root.child('.info/connected').on('value', function (snap) {
+					if (snap.val()) {
+						meRef.child('online').onDisconnect().set(new Date().toISOString());
+						meRef.child('online').set(true);
+					}
+				});
+
+				// games
+				var gamesRef = _this2.firebase.child('users:games').child(authData.uid);
+				_this2.bindAsArray(gamesRef, 'games');
+				gamesRef.once('value').then(function (snap) {
+					_this2.setState({
+						loading: false
 					});
+				});
 
-					// games
-					var gamesRef = _this2.firebase.child('users:games').child(authData.uid);
-					_this2.bindAsArray(gamesRef, 'games');
-					gamesRef.once('value').then(function (snap) {
-						_this2.setState({
-							loading: false
-						});
+				// load most recent game (or a new one, if none found)
+				meRef.once('value').then(function (snap) {
+					_this2.setState({
+						gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key)
 					});
-
-					// load most recent game (or a new one, if none found)
-					meRef.once('value').then(function (snap) {
-						_this2.setState({
-							gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key())
-						});
-					});
-				})();
+				});
 			} else {
 				// @TODO: clean up all firebase stuff
 				_this2.setState(_this2.getInitialState());
@@ -208,31 +216,23 @@ var TicTools = React.createClass({
 		});
 	},
 	login: function login() {
-		var _this3 = this;
-
 		this.setState({ loading: true });
-		this.firebase.authWithOAuthPopup('facebook', function (err) {
-			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
-				_this3.firebase.authWithOAuthRedirect('facebook', function (err) {
-					if (err) alert(err);
-				});
-			}
-		});
+		firebase.auth().signInWithRedirect(new firebase.auth.FacebookAuthProvider());
 	},
 	logout: function logout() {
-		this.firebase.unauth();
+		firebase.auth().signOut();
 		location.reload(); // @HACK
 	},
 	createGame: function createGame(gameData) {
-		var _this4 = this;
+		var _this3 = this;
 
 		this.pickGame(null, function () {
-			return _this4.state.gameRef.update(gameData);
+			return _this3.state.gameRef.update(gameData);
 		});
 	},
 	pickGame: function pickGame(gameId, callback) {
 		if (!this.firebaseRefs.games) return alert('You must login first.');
-		if (!gameId) gameId = this.firebaseRefs.games.push().key();
+		if (!gameId) gameId = this.firebaseRefs.games.push().key;
 
 		if (this.firebaseRefs.me) {
 			this.firebaseRefs.me.update({
@@ -252,7 +252,7 @@ var TicTools = React.createClass({
 		this.pickGame(); // go to new game
 	},
 	render: function render() {
-		var _this5 = this;
+		var _this4 = this;
 
 		return React.createElement(
 			'div',
@@ -311,9 +311,9 @@ var TicTools = React.createClass({
 								)
 							),
 							React.createElement(ImageScanner, { onImageChange: function onImageChange(e) {
-									return _this5.setState({ loading: true });
+									return _this4.setState({ loading: true });
 								}, onImageScanned: function onImageScanned(gameData) {
-									return _this5.createGame(gameData);
+									return _this4.createGame(gameData);
 								} })
 						)
 					),
@@ -342,10 +342,10 @@ var TicTools = React.createClass({
 					this.state.games.sort(function (a, b) {
 						return (a.updated || a.created) > (b.updated || b.created) ? -1 : 1;
 					}).map(function (game) {
-						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this5.state.gameRef && _this5.state.gameRef.key() === game['.key'], onClick: function onClick(e) {
-								return _this5.pickGame(game['.key']);
+						return React.createElement(GameItem, { key: game['.key'], game: game, isActive: _this4.state.gameRef && _this4.state.gameRef.key === game['.key'], onClick: function onClick(e) {
+								return _this4.pickGame(game['.key']);
 							}, onDelete: function onDelete(e) {
-								return _this5.deleteGame(game['.key']);
+								return _this4.deleteGame(game['.key']);
 							} });
 					}),
 					this.state.me && React.createElement(
@@ -394,14 +394,13 @@ var GameItem = React.createClass({
 		};
 	},
 	render: function render() {
-		var _this6 = this;
+		var _this5 = this;
 
-		var _props = this.props;
-		var game = _props.game;
-		var isActive = _props.isActive;
-		var className = _props.className;
-
-		var props = _objectWithoutProperties(_props, ['game', 'isActive', 'className']);
+		var _props = this.props,
+		    game = _props.game,
+		    isActive = _props.isActive,
+		    className = _props.className,
+		    props = _objectWithoutProperties(_props, ['game', 'isActive', 'className']);
 
 		return React.createElement(
 			'li',
@@ -417,9 +416,9 @@ var GameItem = React.createClass({
 				React.createElement(
 					Swipeable,
 					{ className: 'swipeable', threshold: 200, onSwipeLeft: function onSwipeLeft(e) {
-							return _this6.setState({ deleting: true });
+							return _this5.setState({ deleting: true });
 						}, onSwipeRight: function onSwipeRight(e) {
-							return _this6.setState({ deleting: false });
+							return _this5.setState({ deleting: false });
 						} },
 					React.createElement(
 						'div',
@@ -507,10 +506,9 @@ var Game = React.createClass({
 				var removedTurns = game.turns.splice(this.state.t);
 
 				removedTurns.map(function (turn) {
-					var _turn = _slicedToArray(turn, 2);
-
-					var i = _turn[0];
-					var j = _turn[1];
+					var _turn = _slicedToArray(turn, 2),
+					    i = _turn[0],
+					    j = _turn[1];
 
 					game.boards[i].tiles[j] = null;
 				});
@@ -540,17 +538,16 @@ var Game = React.createClass({
 		this.setState({ game: game });
 	},
 	render: function render() {
-		var _this7 = this;
+		var _this6 = this;
 
-		var _props2 = this.props;
-		var me = _props2.me;
-		var className = _props2.className;
-		var props = _objectWithoutProperties(_props2, ['me', 'className']);
-		var game = Defaults.game(this.state.game);
-		var origBoards = game.boards;
-		var origTurns = game.turns;
-
-		var gameData = _objectWithoutProperties(game, ['boards', 'turns']);
+		var _props2 = this.props,
+		    me = _props2.me,
+		    className = _props2.className,
+		    props = _objectWithoutProperties(_props2, ['me', 'className']),
+		    game = Defaults.game(this.state.game),
+		    origBoards = game.boards,
+		    origTurns = game.turns,
+		    gameData = _objectWithoutProperties(game, ['boards', 'turns']);
 
 		var t = this.state.t < 0 ? origTurns.length : this.state.t,
 		    turns = origTurns.slice(0, Math.max(1, Math.min(t, origTurns.length))),
@@ -581,13 +578,13 @@ var Game = React.createClass({
 					)
 				),
 				React.createElement(Tile, { className: 'turn-indicator btn', player: game.turn, letter: game.turn === 'blue' ? game.blue : game.red, onClick: function onClick(e) {
-						return _this7.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
+						return _this6.setState({ game: _extends({}, game, { blue: game.red, red: game.blue }) });
 					} }),
 				React.createElement(
 					'div',
 					null,
 					React.createElement('input', { value: game.opponent || '', placeholder: 'Opponent', size: '8', onChange: function onChange(e) {
-							return _this7.setState({ game: _extends({}, game, { opponent: e.target.value, $dirty: true }) });
+							return _this6.setState({ game: _extends({}, game, { opponent: e.target.value, $dirty: true }) });
 						} }),
 					React.createElement('span', { className: 'btn mini avatar red', style: { backgroundImage: 'url(avatar.svg)' } })
 				)
@@ -611,7 +608,7 @@ var Game = React.createClass({
 					React.createElement(
 						'button',
 						{ disabled: t <= 1, className: 'btn', onClick: function onClick(e) {
-								return _this7.setState({ t: t - 1, game: _extends({}, game, { turn: game.turn === 'blue' ? 'red' : 'blue' }) });
+								return _this6.setState({ t: t - 1, game: _extends({}, game, { turn: game.turn === 'blue' ? 'red' : 'blue' }) });
 							} },
 						React.createElement('img', { src: 'icons/chevron-left.svg', height: '36' })
 					),
@@ -625,7 +622,7 @@ var Game = React.createClass({
 					React.createElement(
 						'button',
 						{ disabled: t >= origTurns.length, className: 'btn', onClick: function onClick(e) {
-								return _this7.setState({ t: t + 1, game: _extends({}, game, { turn: game.turn === 'blue' ? 'red' : 'blue' }) });
+								return _this6.setState({ t: t + 1, game: _extends({}, game, { turn: game.turn === 'blue' ? 'red' : 'blue' }) });
 							} },
 						React.createElement('img', { src: 'icons/chevron-right.svg', height: '36' })
 					)
@@ -652,11 +649,10 @@ var MegaBoard = React.createClass({
 		};
 	},
 	render: function render() {
-		var _props3 = this.props;
-		var boards = _props3.boards;
-		var className = _props3.className;
-
-		var props = _objectWithoutProperties(_props3, ['boards', 'className']);
+		var _props3 = this.props,
+		    boards = _props3.boards,
+		    className = _props3.className,
+		    props = _objectWithoutProperties(_props3, ['boards', 'className']);
 
 		boards = Defaults.boards(boards);
 
@@ -698,12 +694,12 @@ var Board = React.createClass({
 			// this board has been won
 			// (player/winner sets className inline above)
 		} else if (_.filter(tiles, function (tile) {
-				return !tile;
-			}).length === 0) {
-				// no active tiles left
-				// it's a tie --> make this a wildcard
-				className += ' purple';
-			}
+			return !tile;
+		}).length === 0) {
+			// no active tiles left
+			// it's a tie --> make this a wildcard
+			className += ' purple';
+		}
 
 		if (this.props.canChooseAnyTile || this.props.previous && this.props.previous[1].toUpperCase() === this.props.i) {
 			className += ' active';
@@ -712,16 +708,17 @@ var Board = React.createClass({
 		return className;
 	},
 	render: function render() {
-		var _props4 = this.props;
-		var i = _props4.i;
-		var tiles = _props4.tiles;
-		var canChooseAnyTile = _props4.canChooseAnyTile;
-		var previous = _props4.previous;
-		var blue = _props4.blue;
-		var red = _props4.red;
-		var onClick = _props4.onClick;
-		var props = _objectWithoutProperties(_props4, ['i', 'tiles', 'canChooseAnyTile', 'previous', 'blue', 'red', 'onClick']);
-		var zIndex = 0;
+		var _props4 = this.props,
+		    i = _props4.i,
+		    tiles = _props4.tiles,
+		    canChooseAnyTile = _props4.canChooseAnyTile,
+		    previous = _props4.previous,
+		    blue = _props4.blue,
+		    red = _props4.red,
+		    onClick = _props4.onClick,
+		    props = _objectWithoutProperties(_props4, ['i', 'tiles', 'canChooseAnyTile', 'previous', 'blue', 'red', 'onClick']),
+		    zIndex = 0;
+
 		tiles = Defaults.tiles(tiles);
 
 		return React.createElement(
@@ -756,14 +753,13 @@ var Tile = React.createClass({
 		};
 	},
 	render: function render() {
-		var _props5 = this.props;
-		var player = _props5.player;
-		var letter = _props5.letter;
-		var isPrevious = _props5.isPrevious;
-		var isBlocked = _props5.isBlocked;
-		var className = _props5.className;
-
-		var props = _objectWithoutProperties(_props5, ['player', 'letter', 'isPrevious', 'isBlocked', 'className']);
+		var _props5 = this.props,
+		    player = _props5.player,
+		    letter = _props5.letter,
+		    isPrevious = _props5.isPrevious,
+		    isBlocked = _props5.isBlocked,
+		    className = _props5.className,
+		    props = _objectWithoutProperties(_props5, ['player', 'letter', 'isPrevious', 'isBlocked', 'className']);
 
 		return React.createElement(
 			'span',
@@ -874,7 +870,7 @@ var ImageScanner = React.createClass({
 		}
 	},
 	handleUpload: function handleUpload(e) {
-		var _this8 = this;
+		var _this7 = this;
 
 		var reader = new FileReader();
 		reader.onload = function (e) {
@@ -882,7 +878,7 @@ var ImageScanner = React.createClass({
 			img.src = e.target.result;
 
 			img.onload = function (e) {
-				return _this8.props.onImageScanned(_this8.scanImage(img));
+				return _this7.props.onImageScanned(_this7.scanImage(img));
 			};
 		};
 		reader.onerror = function (err) {

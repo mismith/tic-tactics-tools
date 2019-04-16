@@ -1,3 +1,13 @@
+var config = {
+	apiKey: 'AIzaSyCwAPZxgorwuqX_7gku1XD1UY3YbUyPbq4',
+	authDomain: 'mismith.firebaseapp.com',
+	databaseURL: 'https://mismith.firebaseio.com',
+	projectId: 'firebase-mismith',
+	storageBucket: 'firebase-mismith.appspot.com',
+	messagingSenderId: '668345313266'
+};
+firebase.initializeApp(config);
+
 function mapInOrder(obj, callback, context) {
 	return Object.keys(obj).sort((a,b) => a < b ? -1 : 1).map(k => callback.call(context || this, obj[k], k));
 }
@@ -145,8 +155,8 @@ let TicTools = React.createClass({
 	},
 
 	componentWillMount() {
-		this.firebase = new Firebase('https://mismith.firebaseio.com/tic-tactics-tools');
-		this.firebase.onAuth(authData => {
+		this.firebase = firebase.database().ref('tic-tools');
+		firebase.auth().onAuthStateChanged(authData => {
 			if (authData) {
 				// user profile
 				let meRef = this.firebase.child('users').child(authData.uid);
@@ -158,7 +168,7 @@ let TicTools = React.createClass({
 				this.bindAsObject(meRef, 'me');
 
 				// online presence
-				this.firebase.root().child('.info/connected').on('value', snap => {
+				this.firebase.root.child('.info/connected').on('value', snap => {
 					if (snap.val()) {
 						meRef.child('online').onDisconnect().set(new Date().toISOString());
 						meRef.child('online').set(true);
@@ -177,7 +187,7 @@ let TicTools = React.createClass({
 				// load most recent game (or a new one, if none found)
 				meRef.once('value').then(snap => {
 					this.setState({
-						gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key()),
+						gameRef: gamesRef.child(snap.val().gameId || gamesRef.push().key),
 					});
 				});
 			} else {
@@ -190,16 +200,10 @@ let TicTools = React.createClass({
 
 	login() {
 		this.setState({loading: true});
-		this.firebase.authWithOAuthPopup('facebook', err => {
-			if (err && err.code === 'TRANSPORT_UNAVAILABLE') {
-				this.firebase.authWithOAuthRedirect('facebook', err => {
-					if (err) alert(err);
-				});
-			}
-		});
+		firebase.auth().signInWithRedirect(new firebase.auth.FacebookAuthProvider());
 	},
 	logout() {
-		this.firebase.unauth();
+		firebase.auth().signOut();
 		location.reload(); // @HACK
 	},
 
@@ -208,7 +212,7 @@ let TicTools = React.createClass({
 	},
 	pickGame(gameId, callback) {
 		if (!this.firebaseRefs.games) return alert('You must login first.');
-		if (!gameId) gameId = this.firebaseRefs.games.push().key();
+		if (!gameId) gameId = this.firebaseRefs.games.push().key;
 
 		if (this.firebaseRefs.me) {
 			this.firebaseRefs.me.update({
@@ -273,7 +277,7 @@ let TicTools = React.createClass({
 					</li>
 				}
 				{this.state.games.sort((a, b) => (a.updated || a.created) > (b.updated || b.created) ? -1 : 1).map(game =>
-					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key() === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
+					<GameItem key={game['.key']} game={game} isActive={this.state.gameRef && this.state.gameRef.key === game['.key']} onClick={e => this.pickGame(game['.key'])} onDelete={e => this.deleteGame(game['.key'])} />
 				)}
 				{this.state.me && 
 					<li className="gameitem new red" onClick={this.logout}>
